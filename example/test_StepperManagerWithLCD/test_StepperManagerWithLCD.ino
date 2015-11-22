@@ -86,8 +86,7 @@
 
 
 #include <slight_StepperManager.h>
-// create alias for namespace
-namespace mosys = slight_StepperManager;
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Info
@@ -264,6 +263,115 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
         button_duration_ClickDouble
     )
 };
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// StepperManager
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Stepper Motor
+
+    // Pins for DRV8825 and Genuino micro on breadboard
+    kissPinAssignments motor_pinAssignments(
+         7,  // pinDir
+         8,  // pinStep
+        12,  // pinEnable
+        11,  // pinMS1
+        10,  // pinMS2
+         9   // pinMS3
+    );
+
+    // kissMicrostepConfig for TI DRV8825
+    // http://www.ti.com/product/drv8825?qgpn=drv8825
+    // 8.3.5 Microstepping Indexer
+    // Table    1.    Stepping    Format
+    //     MODE2 MODE1 MODE0 STEP MODE
+    //     0     0     0     Full step (2-phase excitation) with 71% current
+    //     0     0     1     1/2  step (1-2 phase excitation)
+    //     0     1     0     1/4  step (W1-2 phase excitation)
+    //     0     1     1      8   microsteps/step
+    //     1     0     0     16   microsteps/step
+    //     1     0     1     32   microsteps/step
+    //     1     1     0     32   microsteps/step
+    //     1     1     1     32   microsteps/step
+    kissMicrostepConfig motor_microstepConfig(
+        MICROSTEP_32,
+        B01010101,  // MS1Config
+        B00110011,  // MS2Config
+        B00001111   // MS3Config
+    );
+
+    // instantiate the kissStepper
+    kissStepper myStepperMotor(
+        motor_pinAssignments,
+        motor_microstepConfig
+    );
+
+    // number of full steps in one revolution of the motor
+    const uint16_t motor_full_steps_revolution = 200;
+    const uint8_t motor_max_microsteps_factor = 32;
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Limit Switchs
+
+    const uint16_t LimitSwitch_duration_Debounce      =   10;
+    const uint16_t LimitSwitch_duration_HoldingDown   = 9000;
+    const uint16_t LimitSwitch_duration_ClickSingle   =   30;
+    const uint16_t LimitSwitch_duration_ClickLong     = 9000;
+    const uint16_t LimitSwitch_duration_ClickDouble   =  200;
+
+    const uint8_t LimitSwitch_forward = 0;
+    const uint8_t LimitSwitch_reverse = 1;
+
+    const uint8_t LimitSwitchs_COUNT = 2;
+
+
+    slight_ButtonInput LimitSwitchs[LimitSwitchs_COUNT] = {
+        slight_ButtonInput(
+            LimitSwitch_forward,
+            MOSI,
+            LimitSwitch_getInput,
+            LimitSwitch_onEvent,
+            LimitSwitch_duration_Debounce,
+            LimitSwitch_duration_HoldingDown,
+            LimitSwitch_duration_ClickSingle,
+            LimitSwitch_duration_ClickLong,
+            LimitSwitch_duration_ClickDouble
+        ),
+        slight_ButtonInput(
+            LimitSwitch_reverse,
+            MISO,
+            LimitSwitch_getInput,
+            LimitSwitch_onEvent,
+            LimitSwitch_duration_Debounce,
+            LimitSwitch_duration_HoldingDown,
+            LimitSwitch_duration_ClickSingle,
+            LimitSwitch_duration_ClickLong,
+            LimitSwitch_duration_ClickDouble
+        )
+    };
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Stepper Manager
+
+    // maximal amount of time (milliseconds) motor is allowed to continusly run
+    const uint16_t motor_move_timeout = 5000;
+
+    // set limit to what calibration will drive as min and max values:
+    const int8_t calibration_limit_turns = 2;
+    const int32_t calibration_limit =
+        motor_max_microsteps_factor *
+        motor_full_steps_revolution *
+        calibration_limit_turns;
+
+
+    slight_StepperManager myStepperManager(
+        myStepperMotor,
+        LimitSwitchs[LimitSwitch_forward],
+        LimitSwitchs[LimitSwitch_reverse],
+        motor_move_timeout,
+        calibration_limit
+    );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // other things..
@@ -789,49 +897,50 @@ void myButton_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
             // Serial.println(button_id);
             switch (button_id) {
                 case 0:{
+                    // start calibration
+                    myStepperManager.system_start_calibration();
                     // toggle enable
-                    // if(mosys::motor.isEnabled()) {
-                    //     mosys::motor.disable();
+                    // if(myStepperMotor.isEnabled()) {
+                    //     myStepperMotor.disable();
                     // } else {
-                    //     mosys::motor.enable();
+                    //     myStepperMotor.enable();
                     // }
                 }break;
                 case 1:{
                     // speed
                     uint16_t speed;
-                    // speed = mosys::motor.getMaxSpeed();
+                    speed = myStepperMotor.getMaxSpeed();
                     speed = speed + 50;
                     if(speed > 400) {
                         speed = 50;
                     }
-                    // mosys::motor.setMaxSpeed(speed);
+                    myStepperMotor.setMaxSpeed(speed);
                     display_motorspeed_update();
                 }break;
                 case 2:{
                     // user stop
-                    // mosys::motor.stop();
-
-                    if(mosys::motor_isEnabled()) {
-                        mosys::motor_set_enable(false);
+                    // myStepperMotor.stop();
+                    if(myStepperMotor.isEnabled()) {
+                        myStepperMotor.disable();
                     } else {
-                        mosys::motor_set_enable(true);
+                        myStepperMotor.enable();
                     }
                 }break;
                 case 3: {
-                    mosys::motor_move_forward();
-                    // if(mosys::motor.getMoveState() == 0) {
-                    //     mosys::motor_move_forward();
-                    // } else {
-                    //     mosys::motor.decelerate();
-                    // }
+                    // myStepperManager.motor_move_forward();
+                    if(myStepperManager.motor_move_state == 0) {
+                        myStepperManager.motor_move_forward();
+                    } else {
+                        myStepperManager.motor.decelerate();
+                    }
                 } break;
                 case 4: {
-                    mosys::motor_move_reverse();
-                    // if(mosys::motor.getMoveState() == 0) {
-                    //     mosys::motor_move_reverse();
-                    // } else {
-                    //     mosys::motor.decelerate();
-                    // }
+                    // myStepperManager.motor_move_reverse();
+                    if(myStepperManager.motor_move_state == 0) {
+                        myStepperManager.motor_move_reverse();
+                    } else {
+                        myStepperManager.motor.decelerate();
+                    }
                 } break;
             }  // end switch button_id
 
@@ -841,7 +950,7 @@ void myButton_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
             switch (button_id) {
                 case 0:{
                     // move to home
-                    // mosys::motor.moveTo(0);
+                    myStepperMotor.moveTo(0);
                 } break;
             }  // end switch button_id
         } break;
@@ -849,8 +958,7 @@ void myButton_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
             Serial.println(F("click double"));
             switch (button_id) {
                 case 0:{
-                    // start calibration
-                    mosys::system_start_calibration();
+                    //
                 } break;
             }  // end switch button_id
         } break;
@@ -887,16 +995,16 @@ void display_init(Print &out) {
     out.println(F("\t draw full"));
     display_drawfull();
 
-    mosys::motor_move_event_set_callback(
+    myStepperManager.motor_move_event_set_callback(
         display_motorstate_update
     );
-    mosys::motor_acceleration_event_set_callback(
+    myStepperManager.motor_acceleration_event_set_callback(
         display_motoraccel_update
     );
-    mosys::motor_enable_event_set_callback(
+    myStepperManager.motor_enable_event_set_callback(
         display_motorenabled_update
     );
-    mosys::system_event_set_callback(
+    myStepperManager.system_event_set_callback(
         display_systemevent
     );
 }
@@ -911,7 +1019,7 @@ void display_init(Print &out) {
 void display_motorspeed_update() {
     // draw all display parts
     char* buffer = "----";
-    // sprintf(buffer, "%4u", mosys::motor.getMaxSpeed());
+    sprintf(buffer, "%4u", myStepperMotor.getMaxSpeed());
     lcd.setCursor(12,0);
     lcd.print(buffer);
 }
@@ -927,10 +1035,7 @@ void display_motorspeed() {
 
 void display_motorstate_update() {
     lcd.setCursor(0,0);
-    // int8_t mms;
-    // mms = mosys::motor_move_state;
-    // switch(mms) {
-    switch(mosys::motor_move_state) {
+    switch(myStepperManager.motor_move_state) {
         // STOP
         case 0: {
             // lcd.write(B00010110);
@@ -952,13 +1057,10 @@ void display_motorstate_update() {
 
 void display_motoraccel_update() {
     lcd.setCursor(1,0);
-    // int8_t mas;
-    // mas = mosys::motor_accel_state;
-    // switch(mas) {
-    switch(mosys::motor_accel_state) {
+    switch(myStepperManager.motor_accel_state) {
         // run
         case 0: {
-            if(mosys::motor_move_state != 0) {
+            if(myStepperManager.motor_move_state != 0) {
                 lcd.write('=');
             } else {
                 lcd.write(' ');
@@ -979,10 +1081,7 @@ void display_motoraccel_update() {
 
 void display_motorenabled_update() {
     lcd.setCursor(2,0);
-    // int8_t me;
-    // me = mosys::motor_isenabled;
-    // if(me) {
-    if(mosys::motor_isenabled) {
+    if(myStepperManager.motor_isenabled) {
         lcd.write('*');
     } else {
         lcd.write(0);
@@ -991,21 +1090,21 @@ void display_motorenabled_update() {
 
 void display_systemevent() {
     Serial.print(F("system_state: "));
-    mosys::print_state(Serial, mosys::system_state);
+    myStepperManager.print_state(Serial, myStepperManager.system_state);
     Serial.println();
     lcd.setCursor(0,1);
     // clear second line of lcd
     lcd.print(F("                "));
     lcd.setCursor(0,1);
-    if(mosys::system_state == mosys::SYSSTATE_error) {
+    if(myStepperManager.system_state == slight_StepperManager::SYSSTATE_error) {
         // print error
-        mosys::print_error(lcd, mosys::error_type);
+        myStepperManager.print_error(lcd, myStepperManager.error_type);
         Serial.print(F("error: "));
-        mosys::print_error(Serial, mosys::error_type);
+        myStepperManager.print_error(Serial, myStepperManager.error_type);
         Serial.println();
     } else {
         // print system state
-        mosys::print_state(lcd, mosys::system_state);
+        myStepperManager.print_state(lcd, myStepperManager.system_state);
     }
 }
 
@@ -1035,6 +1134,54 @@ void display_periodic_update() {
         display_motorspeed_update();
     }
 }
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// StepperManager
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Stepper Motor
+    // all handled inside of StepperManager
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Limit Switchs
+    void LimitSwitchs_init() {
+        for (size_t index = 0; index < LimitSwitchs_COUNT; index++) {
+            pinMode(LimitSwitchs[index].getPin(), INPUT_PULLUP);
+            LimitSwitchs[index].begin();
+        }
+    }
+
+    void LimitSwitchs_update() {
+        for (size_t index = 0; index < LimitSwitchs_COUNT; index++) {
+            LimitSwitchs[index].update();
+        }
+    }
+
+    boolean LimitSwitch_getInput(uint8_t id, uint8_t pin) {
+        // read input invert reading - button closes to GND.
+        // check HWB
+        // return ! (PINE & B00000100);
+        return !digitalRead(pin);
+    }
+
+    void LimitSwitch_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
+        myStepperManager.LimitSwitch_onEvent(pInstance, event);
+    }
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Stepper Manager
+
+    void StepperManager_init() {
+        LimitSwitchs_init();
+        myStepperManager.init();
+    }
+
+    void StepperManager_update() {
+        LimitSwitchs_update();
+        myStepperManager.update();
+    }
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1119,7 +1266,7 @@ void setup() {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // setup motor
-        mosys::init();
+        StepperManager_init();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // show serial commands
@@ -1147,8 +1294,8 @@ void loop() {
         myButtons_update();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // motor
-        mosys::update();
+    // Stepper Manager
+        StepperManager_update();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // display

@@ -31,12 +31,24 @@
 #ifndef SLIGHT_STEPPERMANAGER_H_
 #define SLIGHT_STEPPERMANAGER_H_
 
-namespace slight_StepperManager {
+#include <kissStepper.h>
+#include <slight_ButtonInput.h>
 
-    // #include <kissStepper.h>
+class slight_StepperManager {
+public:
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // slight_StepperManager
+
+    // slight_StepperManager();
+    slight_StepperManager(
+        kissStepper &motor_ref,
+        slight_ButtonInput &LimitSwitch_forward_ref,
+        slight_ButtonInput &LimitSwitch_reverse_ref,
+        const uint16_t motor_move_timeout_new,
+        const int32_t calibration_limit_new
+    );
+
     void init();
     void update();
 
@@ -49,6 +61,9 @@ namespace slight_StepperManager {
     void motor_enable_event_set_callback(callback_t);
     void system_event_set_callback(callback_t);
 
+    // calibration
+    void system_start_calibration();
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // system state
 
@@ -60,10 +75,10 @@ namespace slight_StepperManager {
         ERROR_motorstop,
         ERROR_calibrating,
     };
-    extern error_t error_type;
+    error_t error_type;
+    void print_error(Print&, error_t);
 
-    extern void print_error(Print&, error_t);
-
+    // enum class sysstate_t : uint8_t {      // c++ typesafe; arduino > 1.6.
     enum sysstate_t {  // c
         SYSSTATE_notvalid,
         SYSSTATE_standby,
@@ -79,29 +94,61 @@ namespace slight_StepperManager {
         SYSSTATE_calibrating_reverse_finished,
         SYSSTATE_calibrating_finished,
     };
+    sysstate_t system_state;
+    void print_state(Print&, sysstate_t);
 
-    extern sysstate_t system_state;
 
-    extern void print_state(Print&, sysstate_t);
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // stepper motor
 
-    // number of full steps in one revolution of the motor
-    extern const uint16_t motor_full_steps_revolution;
+    kissStepper &motor;
 
-    // extern kissStepper motor;
+    int8_t motor_accel_state;
+    int8_t motor_move_state;
+    int8_t motor_isenabled;
 
-    extern int8_t motor_accel_state;
-    extern int8_t motor_move_state;
-    extern int8_t motor_isenabled;
+    void motor_print_mode(Print &out, uint8_t mode);
+    bool motor_move_forward();
+    bool motor_move_reverse();
 
-    extern void motor_print_mode(Print &out, uint8_t mode);
-    extern bool motor_move_forward();
-    extern bool motor_move_reverse();
-    extern bool motor_isEnabled();
-    extern bool motor_set_enable(bool);
-    extern void system_start_calibration();
+
+    // bool motor_isEnabled();
+    // bool motor_set_enable(bool);
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Limit Switchs
+
+    slight_ButtonInput &LimitSwitch_forward;
+    slight_ButtonInput &LimitSwitch_reverse;
+
+    void LimitSwitch_onEvent(slight_ButtonInput *pInstance, uint8_t event);
+
+
+private:
+
+    const uint16_t motor_move_timeout;
+    const int32_t calibration_limit;
+
+    uint32_t motor_move_started_timestamp;
+
+    callback_t callback_move_event;
+    callback_t callback_accelleration_event;
+    callback_t callback_enable_event;
+    callback_t callback_system_event;
+
+    void system_event_callback();
+
+    void system_state_update();
+
+
+    void motor_init(Print &out);
+    void motor_check_event();
+
+
+    void system_state_calibrating_global_checks();
+    void system_state_calibrating_forward_checks();
+    void system_state_calibrating_reverse_checks();
 
 };  // end namespace slight_StepperManager
 
