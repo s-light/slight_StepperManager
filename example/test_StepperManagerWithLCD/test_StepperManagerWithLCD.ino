@@ -358,7 +358,7 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
     const uint16_t motor_move_timeout = 8000;
 
     // set limit to what calibration will drive as min and max values:
-    const int8_t calibration_limit_turns = 2;
+    const int8_t calibration_limit_turns = 3;
     const int32_t calibration_limit =
         motor_max_microsteps_factor *
         motor_full_steps_revolution *
@@ -457,13 +457,13 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             out.print(F("\t set motor acceleration "));
             uint16_t acceleration = atoi(&command[1]);
             out.print(acceleration);
-            // mosys::motor.setAccel(acceleration);
+            myStepperMotor.setAccel(acceleration);
             out.println();
         } break;
         case 'A': {
             out.print(F("\t motor get acceleration:"));
             uint16_t acceleration;
-            // acceleration = mosys::motor.getAccel();
+            acceleration = myStepperMotor.getAccel();
             out.print(acceleration);
             out.println();
         } break;
@@ -471,20 +471,20 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             out.print(F("\t motor set MaxSpeed "));
             uint16_t speed = atoi(&command[1]);
             out.print(speed);
-            // mosys::motor.setMaxSpeed(speed);
+            myStepperMotor.setMaxSpeed(speed);
             out.println();
         } break;
         case 'S': {
             out.print(F("\t motor get MaxSpeed:"));
             uint16_t speed;
-            // speed = mosys::motor.getMaxSpeed();
+            speed = myStepperMotor.getMaxSpeed();
             out.print(speed);
             out.println();
         } break;
         case 'C': {
             out.print(F("\t motor get current speed:"));
             uint16_t speed;
-            // speed = mosys::motor.getCurSpeed();
+            speed = myStepperMotor.getCurSpeed();
             out.print(speed);
             out.println();
         } break;
@@ -495,35 +495,35 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             bool flag_value_valid = false;
             switch (mode) {
                 case 1: {
-                    // mosys::motor.setDriveMode(FULL_STEP);
+                    myStepperMotor.setDriveMode(FULL_STEP);
                     flag_value_valid = true;
                 } break;
                 case 2: {
-                    // mosys::motor.setDriveMode(HALF_STEP);
+                    myStepperMotor.setDriveMode(HALF_STEP);
                     flag_value_valid = true;
                 } break;
                 case 4: {
-                    // mosys::motor.setDriveMode(MICROSTEP_4);
+                    myStepperMotor.setDriveMode(MICROSTEP_4);
                     flag_value_valid = true;
                 } break;
                 case 8: {
-                    // mosys::motor.setDriveMode(MICROSTEP_8);
+                    myStepperMotor.setDriveMode(MICROSTEP_8);
                     flag_value_valid = true;
                 } break;
                 case 16: {
-                    // mosys::motor.setDriveMode(MICROSTEP_16);
+                    myStepperMotor.setDriveMode(MICROSTEP_16);
                     flag_value_valid = true;
                 } break;
                 case 32: {
-                    // mosys::motor.setDriveMode(MICROSTEP_32);
+                    myStepperMotor.setDriveMode(MICROSTEP_32);
                     flag_value_valid = true;
                 } break;
                 case 64: {
-                    // mosys::motor.setDriveMode(MICROSTEP_64);
+                    myStepperMotor.setDriveMode(MICROSTEP_64);
                     flag_value_valid = true;
                 } break;
                 case 128: {
-                    // mosys::motor.setDriveMode(MICROSTEP_128);
+                    myStepperMotor.setDriveMode(MICROSTEP_128);
                     flag_value_valid = true;
                 } break;
                 default: {
@@ -531,15 +531,15 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
                 }
             }
             if(flag_value_valid) {
-                // mosys::motor_print_mode(out, mode);
+                myStepperManager.motor_print_mode(out, mode);
             }
             out.println();
         } break;
         case 'O': {
             out.print(F("\t motor get mode: "));
             uint16_t mode;
-            // mode = mosys::motor.getDriveMode();
-            // mosys::motor_print_mode(out, mode);
+            mode = myStepperMotor.getDriveMode();
+            myStepperManager.motor_print_mode(out, mode);
             out.println();
         } break;
         case 'e': {
@@ -547,8 +547,10 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             bool enabled = atoi(&command[1]);
             if(enabled) {
                 out.print(F("en"));
+                myStepperMotor.enable();
             } else {
                 out.print(F("dis"));
+                myStepperMotor.disable();
             }
             out.print(F("abled. "));
             out.print(enabled);
@@ -557,7 +559,7 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
         case 'E': {
             out.print(F("\t motor is enabled: "));
             bool isEnabled;
-            // isEnabled = mosys::motor.isEnabled();
+            isEnabled = myStepperMotor.isEnabled();
             if(isEnabled) {
                 out.print(F("en"));
             } else {
@@ -570,48 +572,48 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
         //------------------------------------------
         case 'm': {
             out.print(F("\t motor moveTo "));
-            uint32_t position = atoi(&command[1]);
-            // mosys::motor.moveTo(position);
+            int32_t position = atoi(&command[1]);
+            myStepperMotor.moveTo(position);
             out.print(position);
             out.println();
         } break;
         case 'M': {
             out.print(F("\t motor get target:"));
-            // uint32_t position = mosys::motor.getTarget();
-            // if(position == mosys::motor.forwardLimit){
-            //     out.print(F("forwardLimit"));
-            // } else {
-            //     if(position == mosys::motor.reverseLimit){
-            //         out.print(F("reverseLimit"));
-            //     } else {
-            //         out.print(position);
-            //     }
-            // }
+            int32_t position = myStepperMotor.getTarget();
+            if(position == myStepperMotor.forwardLimit){
+                out.print(F("forwardLimit"));
+            } else {
+                if(position == myStepperMotor.reverseLimit){
+                    out.print(F("reverseLimit"));
+                } else {
+                    out.print(position);
+                }
+            }
             out.println();
         } break;
         case 'p': {
             out.print(F("\t motor set position "));
-            uint32_t position = atoi(&command[1]);
-            // mosys::motor.setPos(position);
+            int32_t position = atoi(&command[1]);
+            myStepperMotor.setPos(position);
             out.print(position);
             out.println();
         } break;
         case 'P': {
             out.print(F("\t motor position: "));
-            uint32_t position;
-            // position = mosys::motor.getPos();
+            int32_t position;
+            position = myStepperMotor.getPos();
             out.print(position);
             out.println();
         } break;
         case 'l': {
             out.print(F("\t motor set limits:"));
             out.println();
-            // uint16_t distLimit = // mosys::motor.fullStepVal * 200
-            // // mosys::motor.forwardLimit = distLimit;
-            // // mosys::motor.reverseLimit = -distLimit;
+            // uint16_t distLimit = myStepperMotor.fullStepVal * 200;
+            // myStepperMotor.forwardLimit = distLimit;
+            // myStepperMotor.reverseLimit = -distLimit;
             // get first limit
             int32_t limit_forward = atol(&command[1]);
-            // mosys::motor.forwardLimit = limit_forward;
+            myStepperMotor.forwardLimit = limit_forward;
             // defaults to negative of limit_forward
             int32_t limit_reverse = limit_forward * -1;
 
@@ -623,45 +625,45 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
                 out.print(F("\t   --> no second parameter given. used negative first."));
                 out.println();
             }
-            // mosys::motor.reverseLimit = limit_reverse;
+            myStepperMotor.reverseLimit = limit_reverse;
 
             // print current/new limits
             out.print(F("\t   forwardLimit: "));
-            // out.print(mosys::motor.forwardLimit);
+            out.print(myStepperMotor.forwardLimit);
             out.println();
             out.print(F("\t   reverseLimit: "));
-            // out.print(mosys::motor.reverseLimit);
+            out.print(myStepperMotor.reverseLimit);
             out.println();
         } break;
         case 'L': {
             out.print(F("\t motor limits: "));
             out.println();
             out.print(F("\t   forwardLimit: "));
-            // out.print(mosys::motor.forwardLimit);
+            out.print(myStepperMotor.forwardLimit);
             out.println();
             out.print(F("\t   reverseLimit: "));
-            // out.print(mosys::motor.reverseLimit);
+            out.print(myStepperMotor.reverseLimit);
             out.println();
         } break;
         //------------------------------------------
         case 'D': {
             out.print(F("\t motor stop "));
-            // mosys::motor.stop();
+            myStepperMotor.stop();
             out.println();
         } break;
         case 'd': {
             out.print(F("\t motor decelerate "));
-            // mosys::motor.decelerate();
+            myStepperMotor.decelerate();
             out.println();
         } break;
         case 'r': {
             out.print(F("\t motor run forward "));
-            // mosys::motor.moveTo(mosys::motor.forwardLimit);
+            myStepperMotor.moveTo(myStepperMotor.forwardLimit);
             out.println();
         } break;
         case 'R': {
             out.print(F("\t motor run reverse "));
-            // mosys::motor.moveTo(mosys::motor.reverseLimit);
+            myStepperMotor.moveTo(myStepperMotor.reverseLimit);
             out.println();
         } break;
         //---------------------------------------------------------------------
