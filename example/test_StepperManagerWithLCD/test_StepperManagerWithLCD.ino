@@ -355,7 +355,7 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
     // Stepper Manager
 
     // maximal amount of time (milliseconds) motor is allowed to continusly run
-    const uint16_t motor_move_timeout = 5000;
+    const uint16_t motor_move_timeout = 8000;
 
     // set limit to what calibration will drive as min and max values:
     const int8_t calibration_limit_turns = 2;
@@ -363,6 +363,7 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
         motor_max_microsteps_factor *
         motor_full_steps_revolution *
         calibration_limit_turns;
+    const int16_t calibration_speed = 50;
 
 
     slight_StepperManager myStepperManager(
@@ -370,7 +371,8 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
         LimitSwitchs[LimitSwitch_forward],
         LimitSwitchs[LimitSwitch_reverse],
         motor_move_timeout,
-        calibration_limit
+        calibration_limit,
+        calibration_speed
     );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1096,7 +1098,10 @@ void display_systemevent() {
     // clear second line of lcd
     lcd.print(F("                "));
     lcd.setCursor(0,1);
-    if(myStepperManager.system_state == slight_StepperManager::SYSSTATE_error) {
+    if(
+        myStepperManager.system_state ==
+        slight_StepperManager::SYSSTATE_error
+    ) {
         // print error
         myStepperManager.print_error(lcd, myStepperManager.error_type);
         Serial.print(F("error: "));
@@ -1105,6 +1110,19 @@ void display_systemevent() {
     } else {
         // print system state
         myStepperManager.print_state(lcd, myStepperManager.system_state);
+        // if calibration finished
+        if(
+            myStepperManager.system_state ==
+            slight_StepperManager::SYSSTATE_calibrating_finished
+        ) {
+            // print limit values to serial
+            Serial.print(F(" *forwardLimit: "));
+            Serial.print(myStepperManager.motor.forwardLimit);
+            Serial.println();
+            Serial.print(F(" *reverseLimit: "));
+            Serial.print(myStepperManager.motor.reverseLimit);
+            Serial.println();
+        }
     }
 }
 

@@ -41,13 +41,25 @@ public:
     // slight_StepperManager
 
     // slight_StepperManager();
+
+    // slight_StepperManager(
+    //     kissStepper &motor_ref,
+    //     slight_ButtonInput &LimitSwitch_forward_ref,
+    //     slight_ButtonInput &LimitSwitch_reverse_ref,
+    //     const uint16_t motor_move_timeout_new,
+    //     const int32_t calibration_limit_new
+    // );
+
     slight_StepperManager(
         kissStepper &motor_ref,
         slight_ButtonInput &LimitSwitch_forward_ref,
         slight_ButtonInput &LimitSwitch_reverse_ref,
         const uint16_t motor_move_timeout_new,
-        const int32_t calibration_limit_new
+        const int32_t calibration_limit_new,
+        const int16_t calibration_speed_new
     );
+
+
 
     void init();
     void update();
@@ -97,8 +109,6 @@ public:
     sysstate_t system_state;
     void print_state(Print&, sysstate_t);
 
-
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // stepper motor
 
@@ -111,10 +121,8 @@ public:
     void motor_print_mode(Print &out, uint8_t mode);
     bool motor_move_forward();
     bool motor_move_reverse();
-
-
-    // bool motor_isEnabled();
-    // bool motor_set_enable(bool);
+    bool motor_move_forward_raw();
+    bool motor_move_reverse_raw();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Limit Switchs
@@ -129,6 +137,8 @@ private:
 
     const uint16_t motor_move_timeout;
     const int32_t calibration_limit;
+    const int32_t calibration_speed;
+    int32_t speed_backup;
 
     uint32_t motor_move_started_timestamp;
 
@@ -146,9 +156,13 @@ private:
     void motor_check_event();
 
 
+    void system_state_calibrating_start();
     void system_state_calibrating_global_checks();
     void system_state_calibrating_forward_checks();
+    void system_state_calibrating_forward_finished();
     void system_state_calibrating_reverse_checks();
+    void system_state_calibrating_reverse_finished();
+    void system_state_calibrating_finished();
 
 };  // end namespace slight_StepperManager
 
