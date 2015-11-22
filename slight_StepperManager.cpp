@@ -37,13 +37,13 @@
     #endif
 #endif
 
-#include "motor_system_interface.h"
-#include "motor_system_config.h"
+#include "slight_StepperManager.h"
+#include "slight_StepperManager_Config.h"
 
 #include <kissStepper.h>
 #include <slight_ButtonInput.h>
 
-namespace motor_system {
+namespace slight_StepperManager {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // prototyps
@@ -642,7 +642,7 @@ namespace motor_system {
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // motor_system
+    // slight_StepperManager
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     void init() {
@@ -677,4 +677,4 @@ namespace motor_system {
         }
     }
 
-};  // namespace motor_system
+};  // namespace slight_StepperManager

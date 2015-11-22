@@ -85,9 +85,9 @@
 #include <slight_LiquidCrystalDummy.h>
 
 
-#include "motor_system_interface.h"
+#include <slight_StepperManager.h>
 // create alias for namespace
-namespace mosys = motor_system;
+namespace mosys = slight_StepperManager;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Info

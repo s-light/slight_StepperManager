@@ -28,12 +28,12 @@
     SOFTWARE.
 ******************************************************************************/
 
-#ifndef MOTOR_SYSTEM_CONFIG_H_
-#define MOTOR_SYSTEM_CONFIG_H_
+#ifndef SLIGHT_STEPPERMANAGER_CONFIG_H_
+#define SLIGHT_STEPPERMANAGER_CONFIG_H_
 
 #include <kissStepper.h>
 
-namespace motor_system {
+namespace slight_StepperManager {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // LimitSwitchs
 
@@ -100,6 +100,6 @@ namespace motor_system {
 
 
 
-};  // end namespace motor_system
+};  // end namespace slight_StepperManager
 
-#endif  // MOTOR_SYSTEM_CONFIG_H_
+#endif  // SLIGHT_STEPPERMANAGER_CONFIG_H_

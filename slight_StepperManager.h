@@ -28,15 +28,15 @@
     SOFTWARE.
 ******************************************************************************/
 
-#ifndef MOTOR_SYSTEM_INTERFACE_H_
-#define MOTOR_SYSTEM_INTERFACE_H_
+#ifndef SLIGHT_STEPPERMANAGER_H_
+#define SLIGHT_STEPPERMANAGER_H_
 
-namespace motor_system {
+namespace slight_StepperManager {
 
     // #include <kissStepper.h>
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // motor_system
+    // slight_StepperManager
     void init();
     void update();
 
@@ -103,6 +103,6 @@ namespace motor_system {
     extern bool motor_set_enable(bool);
     extern void system_start_calibration();
 
-};  // end namespace motor_system
+};  // end namespace slight_StepperManager
 
-#endif  // MOTOR_SYSTEM_INTERFACE_H_
+#endif  // SLIGHT_STEPPERMANAGER_H_
