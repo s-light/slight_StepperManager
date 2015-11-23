@@ -363,7 +363,8 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
         motor_max_microsteps_factor *
         motor_full_steps_revolution *
         calibration_limit_turns;
-    const int16_t calibration_speed = 50;
+    const int16_t calibration_speed = 100;
+    uint16_t calibration_limit_threshold = motor_max_microsteps_factor;
 
 
     slight_StepperManager myStepperManager(
@@ -372,7 +373,8 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
         LimitSwitchs[LimitSwitch_reverse],
         motor_move_timeout,
         calibration_limit,
-        calibration_speed
+        calibration_speed,
+        calibration_limit_threshold
     );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -715,6 +717,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.println(F("\t 'f': forward"));
             out.println(F("\t 'r': reverse"));
             out.println(F("\t 'p': print system state"));
+            out.println(F("\t 's': emergency stop"));
             out.println();
             out.println(F("\t 'motor': enter Menu Motor "));
             out.println();
@@ -776,7 +779,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         //---------------------------------------------------------------------
         case 'c': {
             out.print(F("\t forward."));
-            myStepperManager.system_start_calibration();
+            myStepperManager.calibration_start();
             out.println();
         } break;
         case 'f': {
@@ -793,6 +796,18 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.print(F("\t print system event"));
             out.println();
             display_systemevent();
+        } break;
+        case 's': {
+            out.print(F("\t emergency stop"));
+            myStepperManager.system_emergencystop();
+            out.println();
+        } break;
+        case 'l': {
+            out.print(F("\t set limit threshold "));
+            uint16_t threshold = atoi(&command[1]);
+            out.print(threshold);
+            out.println();
+            myStepperManager.calibration_limit_threshold_set(threshold);
         } break;
         //---------------------------------------------------------------------
         case '_': {
@@ -927,7 +942,7 @@ void myButton_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
             switch (button_id) {
                 case 0:{
                     // start calibration
-                    myStepperManager.system_start_calibration();
+                    myStepperManager.calibration_start();
                     // toggle enable
                     // if(myStepperMotor.isEnabled()) {
                     //     myStepperMotor.disable();

@@ -56,7 +56,8 @@ public:
         slight_ButtonInput &LimitSwitch_reverse_ref,
         const uint16_t motor_move_timeout_new,
         const int32_t calibration_limit_new,
-        const int16_t calibration_speed_new
+        const int16_t calibration_speed_new,
+        uint16_t calibration_limit_threshold_new
     );
 
 
@@ -74,7 +75,9 @@ public:
     void system_event_set_callback(callback_t);
 
     // calibration
-    void system_start_calibration();
+    void calibration_start();
+    void calibration_limit_threshold_set(uint16_t);
+    uint16_t calibration_limit_threshold_get();
 
     // emergency stop
     void system_emergencystop();
@@ -146,6 +149,7 @@ private:
     const uint16_t motor_move_timeout;
     const int32_t calibration_limit;
     const int32_t calibration_speed;
+    uint16_t calibration_limit_threshold;
     int32_t speed_backup;
 
     bool calibration_direction_forward_done;

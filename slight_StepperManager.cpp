@@ -51,7 +51,8 @@ slight_StepperManager::slight_StepperManager(
     slight_ButtonInput &LimitSwitch_reverse_ref,
     const uint16_t motor_move_timeout_new = 5000,
     const int32_t calibration_limit_new = 12800,
-    const int16_t calibration_speed_new = 50
+    const int16_t calibration_speed_new = 50,
+    uint16_t calibration_limit_threshold_new = 32
 ) :
     motor(motor_ref),
     LimitSwitch_forward(LimitSwitch_forward_ref),
@@ -60,6 +61,8 @@ slight_StepperManager::slight_StepperManager(
     calibration_limit(calibration_limit_new),
     calibration_speed(calibration_speed_new)
 {
+    calibration_limit_threshold = calibration_limit_threshold_new;
+
     error_type = ERROR_none;
     system_state = SYSSTATE_dirty;
     motor_move_started_timestamp = millis();
@@ -329,6 +332,7 @@ bool slight_StepperManager::motor_move_forward_raw() {
         LimitSwitch_forward.getState() ==
         slight_ButtonInput::state_Standby
     ) {
+        // check if current LimitSwitch is active!
         // drive forward
         motor_move_started_timestamp = millis();
         motor.moveTo(motor.forwardLimit);
@@ -352,35 +356,31 @@ bool slight_StepperManager::motor_move_reverse_raw() {
     return motor_started;
 }
 
-// bool motor_set_enable(bool enable = void) {
-// bool motor_set_enable(bool enable) {
-//     // if (enable != void) {
-//     if (enable) {
-//         motor.enable();
-//     } else {
-//         motor.disable();
-//     }
-//     // }
-//     return motor.isEnabled();
-// }
-//
-// bool motor_isEnabled() {
-//     return motor.isEnabled();
-// }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // system functions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // this is the public interface to start calibration
-void slight_StepperManager::system_start_calibration() {
-    // Serial.println(F("slight_StepperManager::system_start_calibration();"));
+void slight_StepperManager::calibration_start() {
+    // Serial.println(F("slight_StepperManager::calibration_start();"));
     system_state = SYSSTATE_calibrating_start;
+}
+
+void slight_StepperManager::calibration_limit_threshold_set(
+    uint16_t calibration_limit_threshold_new
+) {
+    calibration_limit_threshold = calibration_limit_threshold_new;
+}
+
+uint16_t slight_StepperManager::calibration_limit_threshold_get() {
+    return calibration_limit_threshold;
 }
 
 // public emergency stop
 void slight_StepperManager::system_emergencystop() {
     // Serial.println(F("slight_StepperManager::system_emergencystop();"));
+    motor.disable();
     // something went wrong
     system_state = SYSSTATE_error_new;
     error_type = ERROR_emergencystop;
