@@ -170,7 +170,8 @@ private:
 
     void system_state_update();
     void system_state_check_motor_state_change();
-
+    void system_check_motor_timeout();
+    void system_error();
 
     void motor_init(Print &out);
     void motor_check_event();

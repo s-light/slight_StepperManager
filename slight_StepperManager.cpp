@@ -84,6 +84,9 @@ void slight_StepperManager::update() {
     // update motor things
     motor.work();
     motor_check_event();
+    if (motor_move_state != 0) {
+        system_check_motor_timeout();
+    }
     system_state_update();
 }
 
@@ -126,8 +129,8 @@ void slight_StepperManager::LimitSwitch_onEvent(
                         // } break;
                         case SYSSTATE_calibrating_reverse: {
                             // something went wrong
-                            system_state = SYSSTATE_error;
                             error_type = ERROR_limitswitch_wrong_dir;
+                            system_error();
                         } break;
                         // case SYSSTATE_standby: {
                         //     // calibration is not exact enough.
@@ -144,8 +147,8 @@ void slight_StepperManager::LimitSwitch_onEvent(
                     switch (system_state) {
                         case SYSSTATE_calibrating_forward: {
                             // something went wrong
-                            system_state = SYSSTATE_error;
                             error_type = ERROR_limitswitch_wrong_dir;
+                            system_error();
                         } break;
                         // case SYSSTATE_standby: {
                         //     // calibration is not exact enough.
@@ -170,8 +173,8 @@ void slight_StepperManager::LimitSwitch_onEvent(
                 case SYSSTATE_standby:
                 case SYSSTATE_hold: {
                     // system_state = SYSSTATE_dirty;
-                    system_state = SYSSTATE_error;
                     error_type = ERROR_mechanics_moved;
+                    system_error();
                 } break;
                 default: {
                     // nothing to do here.
@@ -371,10 +374,11 @@ uint16_t slight_StepperManager::calibration_limit_threshold_get() {
 // public emergency stop
 void slight_StepperManager::system_emergencystop() {
     // Serial.println(F("slight_StepperManager::system_emergencystop();"));
+    motor.stop();
     motor.disable();
     // something went wrong
-    system_state = SYSSTATE_error;
     error_type = ERROR_emergencystop;
+    system_error();
 }
 
 
@@ -428,8 +432,8 @@ void slight_StepperManager::system_state_calibrating_check_next() {
                     system_state = SYSSTATE_calibrating_reverse_start;
                 } else {
                     // system_state = SYSSTATE_calibrating_forward_start;
-                    system_state = SYSSTATE_error;
                     error_type = ERROR_limitswitchs;
+                    system_error();
                 }
             }
         }  // else check forward todo
@@ -440,16 +444,16 @@ void slight_StepperManager::system_state_calibrating_global_checks() {
     // check if motor is stopped
     if (motor_move_state == 0) {
         // something went wrong
-        system_state = SYSSTATE_error;
         error_type = ERROR_motorstop;
+        system_error();
     } else {
         // check timeout
         uint32_t move_duration =
             millis() - motor_move_started_timestamp;
         if (move_duration > motor_move_timeout) {
             motor.stop();
-            system_state = SYSSTATE_error;
             error_type = ERROR_timeout;
+            system_error();
         }
     }
 }
@@ -460,8 +464,8 @@ void slight_StepperManager::system_state_calibrating_forward_start() {
     if (motor_move_forward_raw()) {
         system_state = SYSSTATE_calibrating_forward;
     } else {
-        system_state = SYSSTATE_error;
         error_type = ERROR_motorstart;
+        system_error();
     }
 }
 
@@ -486,7 +490,7 @@ void slight_StepperManager::system_state_calibrating_forward_checks() {
     //     slight_ButtonInput::state_Active
     // ) {
     //     motor.stop();
-    //     system_state = SYSSTATE_error;
+    //     system_error();
     // }
 }
 
@@ -503,8 +507,8 @@ void slight_StepperManager::system_state_calibrating_reverse_start() {
     if (motor_move_reverse_raw()) {
         system_state = SYSSTATE_calibrating_reverse;
     } else {
-        system_state = SYSSTATE_error;
         error_type = ERROR_motorstart;
+        system_error();
     }
 }
 
@@ -529,7 +533,7 @@ void slight_StepperManager::system_state_calibrating_reverse_checks() {
     //     slight_ButtonInput::state_Active
     // ) {
     //     motor.stop();
-    //     system_state = SYSSTATE_error;
+    //     system_error();
     // }
 }
 
@@ -551,8 +555,8 @@ void slight_StepperManager::system_state_calibrating_finished() {
     // if (error_type == ERROR_none) {
     //     system_state = SYSSTATE_hold;
     // } else {
-    //     system_state = SYSSTATE_error;
     //     error_type = ERROR_calibrating;
+    //     system_error();
     // }
 }
 
@@ -629,7 +633,21 @@ void slight_StepperManager::system_state_check_motor_state_change() {
                 case 0: {
                     // stop
                     if (motor.isEnabled()) {
-                        system_state = SYSSTATE_hold;
+                        // check if one of the Limit Switchs is reached.
+                        // if not thats an error.
+                        if (
+                            (LimitSwitch_forward.getState() ==
+                            slight_ButtonInput::state_Active) ||
+                            (LimitSwitch_reverse.getState() ==
+                            slight_ButtonInput::state_Active)
+                        ) {
+                            // all fine :-)
+                            system_state = SYSSTATE_hold;
+                        } else {
+                            // thats an error
+                            error_type = ERROR_motorstop;
+                            system_error();
+                        }
                     } else {
                         system_state = SYSSTATE_standby;
                     }
@@ -649,6 +667,22 @@ void slight_StepperManager::system_state_check_motor_state_change() {
         }
     }  // switch system_state
 }
+
+void slight_StepperManager::system_check_motor_timeout() {
+    // check timeout
+    uint32_t move_duration = millis() - motor_move_started_timestamp;
+    if (move_duration > motor_move_timeout) {
+        motor.stop();
+        error_type = ERROR_timeout;
+        system_error();
+    }
+}
+
+void slight_StepperManager::system_error() {
+    motor.disable();
+    system_state = SYSSTATE_error;
+}
+
 
 void slight_StepperManager::print_error(Print &out, error_t error) {
     switch (error) {
