@@ -86,6 +86,7 @@ public:
         ERROR_none,
         ERROR_timeout,
         ERROR_limitswitch_wrong_dir,
+        ERROR_limitswitchs,
         ERROR_motorstart,
         ERROR_motorstop,
         ERROR_calibrating,

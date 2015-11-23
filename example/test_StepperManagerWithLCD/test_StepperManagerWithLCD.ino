@@ -714,6 +714,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.println(F("\t 'c': calibrat"));
             out.println(F("\t 'f': forward"));
             out.println(F("\t 'r': reverse"));
+            out.println(F("\t 'p': print system state"));
             out.println();
             out.println(F("\t 'motor': enter Menu Motor "));
             out.println();
@@ -776,14 +777,22 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         case 'c': {
             out.print(F("\t forward."));
             myStepperManager.system_start_calibration();
+            out.println();
         } break;
         case 'f': {
             out.print(F("\t forward."));
             myStepperManager.motor_move_forward();
+            out.println();
         } break;
         case 'r': {
             out.print(F("\t reverse."));
             myStepperManager.motor_move_reverse();
+            out.println();
+        } break;
+        case 'p': {
+            out.print(F("\t print system event"));
+            out.println();
+            display_systemevent();
         } break;
         //---------------------------------------------------------------------
         case '_': {

@@ -243,21 +243,29 @@ void slight_StepperManager::motor_check_event() {
         if (callback_move_event) {
             callback_move_event();
         }
-        switch (motor_move_state) {
-            case 0: {
-                // stop
-                system_state = SYSSTATE_standby;
+        switch (system_state) {
+            // only change system_state whene moving or standby.
+            case SYSSTATE_standby:
+            case SYSSTATE_moving: {
+                switch (motor_move_state) {
+                    case 0: {
+                        // stop
+                        system_state = SYSSTATE_standby;
+                    } break;
+                    case 1: {
+                        // forward
+                        system_state = SYSSTATE_moving;
+                    } break;
+                    case -1: {
+                        // reverse
+                        system_state = SYSSTATE_moving;
+                    } break;
+                }  // switch end
             } break;
-            case 1: {
-                // forward
-                system_state = SYSSTATE_moving;
-            } break;
-            case -1: {
-                // reverse
-                system_state = SYSSTATE_moving;
-            } break;
-        }  // switch end
-
+            default: {
+                //
+            }
+        }  // switch system_state
     }
     int8_t new_accel_state = motor.getAccelState();
     if (new_accel_state != motor_accel_state) {
@@ -399,6 +407,7 @@ void slight_StepperManager::system_state_calibrating_start() {
 }
 
 void slight_StepperManager::system_state_calibrating_check_next() {
+
     // check if both directions are done
     if (
         calibration_direction_forward_done &&
@@ -427,7 +436,9 @@ void slight_StepperManager::system_state_calibrating_check_next() {
                 ) {
                     system_state = SYSSTATE_calibrating_reverse_start;
                 } else {
-                    system_state = SYSSTATE_calibrating_forward_start;
+                    // system_state = SYSSTATE_calibrating_forward_start;
+                    system_state = SYSSTATE_error_new;
+                    error_type = ERROR_limitswitchs;
                 }
             }
         } // else check forward todo
@@ -475,6 +486,7 @@ void slight_StepperManager::system_state_calibrating_forward_checks() {
     ) {
         motor.stop();
         system_state = SYSSTATE_calibrating_forward_finished;
+        system_event_callback();
     } else {
         system_state_calibrating_global_checks();
     }
@@ -520,6 +532,7 @@ void slight_StepperManager::system_state_calibrating_reverse_checks() {
     ) {
         motor.stop();
         system_state = SYSSTATE_calibrating_reverse_finished;
+        system_event_callback();
     } else {
         system_state_calibrating_global_checks();
     }
@@ -530,7 +543,7 @@ void slight_StepperManager::system_state_calibrating_reverse_checks() {
     //     slight_ButtonInput::state_Active
     // ) {
     //     motor.stop();
-    //     system_state = SYSSTATE_error;
+    //     system_state = SYSSTATE_error_new;
     // }
 }
 
@@ -538,6 +551,7 @@ void slight_StepperManager::system_state_calibrating_reverse_finished() {
     // set limit to current position
     motor.reverseLimit = motor.getPos();
     calibration_direction_reverse_done = true;
+    // system_event_callback();
     // calibration finished
     // system_state = SYSSTATE_calibrating_finished;
     system_state = SYSSTATE_calibrating_check_next;
@@ -561,7 +575,6 @@ void slight_StepperManager::system_state_calibrating_finished() {
 
 
 void slight_StepperManager::system_state_update() {
-    // TODO(s-light): implement calibration state mashine
     switch (system_state) {
         case SYSSTATE_notvalid: {
             // nothing to do.
@@ -628,7 +641,11 @@ void slight_StepperManager::print_error(Print &out, error_t error) {
             out.print(F("timeout"));
         } break;
         case ERROR_limitswitch_wrong_dir: {
-            out.print(F("LiSw wrong dir"));
+            // out.print(F("LimitSw wrong dir"));
+            out.print(F("LimitSwDirection"));
+        } break;
+        case ERROR_limitswitchs: {
+            out.print(F("LimitSw blocked"));
         } break;
         case ERROR_motorstart: {
             out.print(F("motor start"));
