@@ -102,10 +102,10 @@ public:
     enum sysstate_t {  // c
         SYSSTATE_notvalid,
         SYSSTATE_standby,
-        SYSSTATE_moving,
-        SYSSTATE_dirty_new,
+        SYSSTATE_hold,
+        SYSSTATE_moving_forward,
+        SYSSTATE_moving_reverse,
         SYSSTATE_dirty,
-        SYSSTATE_error_new,
         SYSSTATE_error,
         SYSSTATE_calibrating_start =    20,
         SYSSTATE_calibrating_check_next,
@@ -157,14 +157,18 @@ private:
 
     uint32_t motor_move_started_timestamp;
 
+    sysstate_t system_state_last;
+
     callback_t callback_move_event;
     callback_t callback_accelleration_event;
     callback_t callback_enable_event;
     callback_t callback_system_event;
 
+
     void system_event_callback();
 
     void system_state_update();
+    void system_state_check_motor_state_change();
 
 
     void motor_init(Print &out);

@@ -126,7 +126,7 @@ void slight_StepperManager::LimitSwitch_onEvent(
                         // } break;
                         case SYSSTATE_calibrating_reverse: {
                             // something went wrong
-                            system_state = SYSSTATE_error_new;
+                            system_state = SYSSTATE_error;
                             error_type = ERROR_limitswitch_wrong_dir;
                         } break;
                         // case SYSSTATE_standby: {
@@ -144,13 +144,9 @@ void slight_StepperManager::LimitSwitch_onEvent(
                     switch (system_state) {
                         case SYSSTATE_calibrating_forward: {
                             // something went wrong
-                            system_state = SYSSTATE_error_new;
+                            system_state = SYSSTATE_error;
                             error_type = ERROR_limitswitch_wrong_dir;
                         } break;
-                        // case SYSSTATE_calibrating_reverse: {
-                        //     // set limit to current position
-                        //     motor.reverseLimit = motor.getPos();
-                        // } break;
                         // case SYSSTATE_standby: {
                         //     // calibration is not exact enough.
                         //     system_state = SYSSTATE_dirty;
@@ -166,9 +162,22 @@ void slight_StepperManager::LimitSwitch_onEvent(
         //     Serial.print(F("duration active: "));
         //     Serial.println((*pInstance).getDurationActive());
         // } break;
-        // case slight_ButtonInput::event_Up : {
-        //     Serial.println(F("up"));
-        // } break;
+        case slight_ButtonInput::event_Up : {
+            // Serial.println(F("up"));
+            // react if motor is not moving but
+            // mechanics are moving away from switch.
+            switch (system_state) {
+                case SYSSTATE_standby:
+                case SYSSTATE_hold: {
+                    // system_state = SYSSTATE_dirty;
+                    system_state = SYSSTATE_error;
+                    error_type = ERROR_limitswitchs;
+                } break;
+                default: {
+                    // nothing to do here.
+                }
+            }  // switch system_state
+        } break;
         // case slight_ButtonInput::event_Click : {
         //     // Serial.println(F("click"));
         // } break;
@@ -246,29 +255,7 @@ void slight_StepperManager::motor_check_event() {
         if (callback_move_event) {
             callback_move_event();
         }
-        switch (system_state) {
-            // only change system_state whene moving or standby.
-            case SYSSTATE_standby:
-            case SYSSTATE_moving: {
-                switch (motor_move_state) {
-                    case 0: {
-                        // stop
-                        system_state = SYSSTATE_standby;
-                    } break;
-                    case 1: {
-                        // forward
-                        system_state = SYSSTATE_moving;
-                    } break;
-                    case -1: {
-                        // reverse
-                        system_state = SYSSTATE_moving;
-                    } break;
-                }  // switch end
-            } break;
-            default: {
-                //
-            }
-        }  // switch system_state
+        system_state_check_motor_state_change();
     }
     int8_t new_accel_state = motor.getAccelState();
     if (new_accel_state != motor_accel_state) {
@@ -296,7 +283,9 @@ bool slight_StepperManager::motor_move_forward() {
     // only move if standby or moving.
     switch (system_state) {
         case SYSSTATE_standby:
-        case SYSSTATE_moving: {
+        case SYSSTATE_hold:
+        case SYSSTATE_moving_forward:
+        case SYSSTATE_moving_reverse: {
             motor_started = motor_move_forward_raw();
         } break;
         default: {
@@ -314,7 +303,9 @@ bool slight_StepperManager::motor_move_reverse() {
     // only move if standby or moving.
     switch (system_state) {
         case SYSSTATE_standby:
-        case SYSSTATE_moving: {
+        case SYSSTATE_hold:
+        case SYSSTATE_moving_forward:
+        case SYSSTATE_moving_reverse: {
             motor_started = motor_move_reverse_raw();
         } break;
         default: {
@@ -382,7 +373,7 @@ void slight_StepperManager::system_emergencystop() {
     // Serial.println(F("slight_StepperManager::system_emergencystop();"));
     motor.disable();
     // something went wrong
-    system_state = SYSSTATE_error_new;
+    system_state = SYSSTATE_error;
     error_type = ERROR_emergencystop;
 }
 
@@ -401,13 +392,11 @@ void slight_StepperManager::system_state_calibrating_start() {
     // reset direction checks
     calibration_direction_forward_done = false;
     calibration_direction_reverse_done = false;
-    // inform master of calibration start
-    system_event_callback();
+    // start calibration mode
     system_state = SYSSTATE_calibrating_check_next;
 }
 
 void slight_StepperManager::system_state_calibrating_check_next() {
-
     // check if both directions are done
     if (
         calibration_direction_forward_done &&
@@ -437,11 +426,11 @@ void slight_StepperManager::system_state_calibrating_check_next() {
                     system_state = SYSSTATE_calibrating_reverse_start;
                 } else {
                     // system_state = SYSSTATE_calibrating_forward_start;
-                    system_state = SYSSTATE_error_new;
+                    system_state = SYSSTATE_error;
                     error_type = ERROR_limitswitchs;
                 }
             }
-        } // else check forward todo
+        }  // else check forward todo
     }  // else check if both directions are done
 }
 
@@ -449,7 +438,7 @@ void slight_StepperManager::system_state_calibrating_global_checks() {
     // check if motor is stopped
     if (motor_move_state == 0) {
         // something went wrong
-        system_state = SYSSTATE_error_new;
+        system_state = SYSSTATE_error;
         error_type = ERROR_motorstop;
     } else {
         // check timeout
@@ -457,7 +446,7 @@ void slight_StepperManager::system_state_calibrating_global_checks() {
             millis() - motor_move_started_timestamp;
         if (move_duration > motor_move_timeout) {
             motor.stop();
-            system_state = SYSSTATE_error_new;
+            system_state = SYSSTATE_error;
             error_type = ERROR_timeout;
         }
     }
@@ -468,9 +457,8 @@ void slight_StepperManager::system_state_calibrating_forward_start() {
     // start calibration
     if (motor_move_forward_raw()) {
         system_state = SYSSTATE_calibrating_forward;
-        system_event_callback();
     } else {
-        system_state = SYSSTATE_error_new;
+        system_state = SYSSTATE_error;
         error_type = ERROR_motorstart;
     }
 }
@@ -486,7 +474,6 @@ void slight_StepperManager::system_state_calibrating_forward_checks() {
     ) {
         motor.stop();
         system_state = SYSSTATE_calibrating_forward_finished;
-        system_event_callback();
     } else {
         system_state_calibrating_global_checks();
     }
@@ -499,7 +486,6 @@ void slight_StepperManager::system_state_calibrating_forward_checks() {
     //     motor.stop();
     //     system_state = SYSSTATE_error;
     // }
-
 }
 
 void slight_StepperManager::system_state_calibrating_forward_finished() {
@@ -514,9 +500,8 @@ void slight_StepperManager::system_state_calibrating_reverse_start() {
     // start calibration reverse
     if (motor_move_reverse_raw()) {
         system_state = SYSSTATE_calibrating_reverse;
-        system_event_callback();
     } else {
-        system_state = SYSSTATE_error_new;
+        system_state = SYSSTATE_error;
         error_type = ERROR_motorstart;
     }
 }
@@ -532,7 +517,6 @@ void slight_StepperManager::system_state_calibrating_reverse_checks() {
     ) {
         motor.stop();
         system_state = SYSSTATE_calibrating_reverse_finished;
-        system_event_callback();
     } else {
         system_state_calibrating_global_checks();
     }
@@ -543,7 +527,7 @@ void slight_StepperManager::system_state_calibrating_reverse_checks() {
     //     slight_ButtonInput::state_Active
     // ) {
     //     motor.stop();
-    //     system_state = SYSSTATE_error_new;
+    //     system_state = SYSSTATE_error;
     // }
 }
 
@@ -551,9 +535,7 @@ void slight_StepperManager::system_state_calibrating_reverse_finished() {
     // set limit to current position
     motor.reverseLimit = motor.getPos();
     calibration_direction_reverse_done = true;
-    // system_event_callback();
     // calibration finished
-    // system_state = SYSSTATE_calibrating_finished;
     system_state = SYSSTATE_calibrating_check_next;
 }
 
@@ -561,46 +543,48 @@ void slight_StepperManager::system_state_calibrating_finished() {
     // set speed to original
     motor.setMaxSpeed(speed_backup);
     // all fine now ;-)
-    system_event_callback();
-    system_state = SYSSTATE_standby;
+    system_state = SYSSTATE_hold;
     // cali
     // final check
     // if (error_type == ERROR_none) {
-    //     system_state = SYSSTATE_standby;
+    //     system_state = SYSSTATE_hold;
     // } else {
-    //     system_state = SYSSTATE_error_new;
+    //     system_state = SYSSTATE_error;
     //     error_type = ERROR_calibrating;
     // }
 }
 
 
 void slight_StepperManager::system_state_update() {
+    // check if state has changed.
+    if (system_state_last != system_state) {
+        system_state_last = system_state;
+        system_event_callback();
+    }
+
     switch (system_state) {
         case SYSSTATE_notvalid: {
             // nothing to do.
         } break;
-        case SYSSTATE_standby: {
-            // nothing to do.
-        } break;
-        case SYSSTATE_moving: {
-            // nothing to do.
-        } break;
-        case SYSSTATE_dirty_new: {
-            // generate event to master so that user can be informed
-            system_state = SYSSTATE_dirty;
-            system_event_callback();
-        } break;
         case SYSSTATE_dirty: {
             // wait
-        } break;
-        case SYSSTATE_error_new: {
-            // generate event to master so that user can be informed
-            system_state = SYSSTATE_error;
-            system_event_callback();
         } break;
         case SYSSTATE_error: {
             // wait
         } break;
+        case SYSSTATE_standby: {
+            // nothing to do.
+        } break;
+        case SYSSTATE_hold: {
+            // nothing to do.
+        } break;
+        case SYSSTATE_moving_forward: {
+            // nothing to do.
+        } break;
+        case SYSSTATE_moving_reverse: {
+            // nothing to do.
+        } break;
+        // calibrating
         case SYSSTATE_calibrating_start: {
             system_state_calibrating_start();
         } break;
@@ -631,6 +615,38 @@ void slight_StepperManager::system_state_update() {
     }
 }
 
+
+void slight_StepperManager::system_state_check_motor_state_change() {
+    switch (system_state) {
+        // only change system_state whene moving or standby.
+        case SYSSTATE_standby:
+        case SYSSTATE_hold:
+        case SYSSTATE_moving_forward:
+        case SYSSTATE_moving_reverse: {
+            switch (motor_move_state) {
+                case 0: {
+                    // stop
+                    if (motor.isEnabled()) {
+                        system_state = SYSSTATE_hold;
+                    } else {
+                        system_state = SYSSTATE_standby;
+                    }
+                } break;
+                case 1: {
+                    // forward
+                    system_state = SYSSTATE_moving_forward;
+                } break;
+                case -1: {
+                    // reverse
+                    system_state = SYSSTATE_moving_reverse;
+                } break;
+            }  // switch end
+        } break;
+        default: {
+            //
+        }
+    }  // switch system_state
+}
 
 void slight_StepperManager::print_error(Print &out, error_t error) {
     switch (error) {
@@ -670,17 +686,17 @@ void slight_StepperManager::print_state(Print &out, sysstate_t state) {
         case SYSSTATE_standby: {
             out.print(F("standby"));
         } break;
-        case SYSSTATE_moving: {
-            out.print(F("moving"));
+        case SYSSTATE_hold: {
+            out.print(F("hold"));
         } break;
-        case SYSSTATE_dirty_new: {
-            out.print(F("dirty new"));
+        case SYSSTATE_moving_forward: {
+            out.print(F("moving forward"));
+        } break;
+        case SYSSTATE_moving_reverse: {
+            out.print(F("moving reverse"));
         } break;
         case SYSSTATE_dirty: {
             out.print(F("dirty"));
-        } break;
-        case SYSSTATE_error_new: {
-            out.print(F("error new"));
         } break;
         case SYSSTATE_error: {
             out.print(F("error"));
