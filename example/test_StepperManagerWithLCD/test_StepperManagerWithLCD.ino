@@ -711,6 +711,10 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.println(F("\t 'u': toggle display periodic update "));
             out.println(F("\t 'x': tests"));
             out.println();
+            out.println(F("\t 'c': calibrat"));
+            out.println(F("\t 'f': forward"));
+            out.println(F("\t 'r': reverse"));
+            out.println();
             out.println(F("\t 'motor': enter Menu Motor "));
             out.println();
             out.println(F("____________________________________________________________"));
@@ -769,7 +773,19 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.println(F("__________"));
         } break;
         //---------------------------------------------------------------------
-
+        case 'c': {
+            out.print(F("\t forward."));
+            myStepperManager.system_start_calibration();
+        } break;
+        case 'f': {
+            out.print(F("\t forward."));
+            myStepperManager.motor_move_forward();
+        } break;
+        case 'r': {
+            out.print(F("\t reverse."));
+            myStepperManager.motor_move_reverse();
+        } break;
+        //---------------------------------------------------------------------
         case '_': {
             out.print(F("\t DemoFadeTo "));
             // convert part of string to int

@@ -76,6 +76,9 @@ public:
     // calibration
     void system_start_calibration();
 
+    // emergency stop
+    void system_emergencystop();
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // system state
 
@@ -86,6 +89,7 @@ public:
         ERROR_motorstart,
         ERROR_motorstop,
         ERROR_calibrating,
+        ERROR_emergencystop,
     };
     error_t error_type;
     void print_error(Print&, error_t);
@@ -100,8 +104,11 @@ public:
         SYSSTATE_error_new,
         SYSSTATE_error,
         SYSSTATE_calibrating_start =    20,
+        SYSSTATE_calibrating_check_next,
+        SYSSTATE_calibrating_forward_start,
         SYSSTATE_calibrating_forward,
         SYSSTATE_calibrating_forward_finished,
+        SYSSTATE_calibrating_reverse_start,
         SYSSTATE_calibrating_reverse,
         SYSSTATE_calibrating_reverse_finished,
         SYSSTATE_calibrating_finished,
@@ -140,6 +147,9 @@ private:
     const int32_t calibration_speed;
     int32_t speed_backup;
 
+    bool calibration_direction_forward_done;
+    bool calibration_direction_reverse_done;
+
     uint32_t motor_move_started_timestamp;
 
     callback_t callback_move_event;
@@ -157,9 +167,12 @@ private:
 
 
     void system_state_calibrating_start();
+    void system_state_calibrating_check_next();
     void system_state_calibrating_global_checks();
+    void system_state_calibrating_forward_start();
     void system_state_calibrating_forward_checks();
     void system_state_calibrating_forward_finished();
+    void system_state_calibrating_reverse_start();
     void system_state_calibrating_reverse_checks();
     void system_state_calibrating_reverse_finished();
     void system_state_calibrating_finished();

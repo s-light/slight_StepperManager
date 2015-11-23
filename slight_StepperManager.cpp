@@ -243,7 +243,21 @@ void slight_StepperManager::motor_check_event() {
         if (callback_move_event) {
             callback_move_event();
         }
-        // display_motorstate_update();
+        switch (motor_move_state) {
+            case 0: {
+                // stop
+                system_state = SYSSTATE_standby;
+            } break;
+            case 1: {
+                // forward
+                system_state = SYSSTATE_moving;
+            } break;
+            case -1: {
+                // reverse
+                system_state = SYSSTATE_moving;
+            } break;
+        }  // switch end
+
     }
     int8_t new_accel_state = motor.getAccelState();
     if (new_accel_state != motor_accel_state) {
@@ -252,7 +266,6 @@ void slight_StepperManager::motor_check_event() {
         if (callback_accelleration_event) {
             callback_accelleration_event();
         }
-        // display_motoraccel_update();
     }
     int8_t new_isenabled = motor.isEnabled();
     if (new_isenabled != motor_isenabled) {
@@ -261,7 +274,6 @@ void slight_StepperManager::motor_check_event() {
         if (callback_enable_event) {
             callback_enable_event();
         }
-        // display_motorenabled_update();
     }
 }
 
@@ -354,31 +366,72 @@ bool slight_StepperManager::motor_move_reverse_raw() {
 
 // this is the public interface to start calibration
 void slight_StepperManager::system_start_calibration() {
-    Serial.println(F("slight_StepperManager::system_start_calibration();"));
+    // Serial.println(F("slight_StepperManager::system_start_calibration();"));
     system_state = SYSSTATE_calibrating_start;
 }
+
+// public emergency stop
+void slight_StepperManager::system_emergencystop() {
+    // Serial.println(F("slight_StepperManager::system_emergencystop();"));
+    // something went wrong
+    system_state = SYSSTATE_error_new;
+    error_type = ERROR_emergencystop;
+}
+
 
 
 void slight_StepperManager::system_state_calibrating_start() {
     // reset limits
     motor.forwardLimit = calibration_limit;
     motor.reverseLimit = -calibration_limit;
-    // set speed to slow
     // backup current speed
     speed_backup = motor.getMaxSpeed();
+    // set speed to slow
     motor.setMaxSpeed(calibration_speed);
     // reset error
     error_type = ERROR_none;
+    // reset direction checks
+    calibration_direction_forward_done = false;
+    calibration_direction_reverse_done = false;
     // inform master of calibration start
     system_event_callback();
-    // start calibration
-    if (motor_move_forward_raw()) {
-        system_state = SYSSTATE_calibrating_forward;
-        system_event_callback();
+    system_state = SYSSTATE_calibrating_check_next;
+}
+
+void slight_StepperManager::system_state_calibrating_check_next() {
+    // check if both directions are done
+    if (
+        calibration_direction_forward_done &&
+        calibration_direction_reverse_done
+    ) {
+        system_state = SYSSTATE_calibrating_finished;
     } else {
-        system_state = SYSSTATE_error_new;
-        error_type = ERROR_motorstart;
-    }
+        // check if forward is todo
+        if (calibration_direction_forward_done == false) {
+            // check if forward is possible (limit switch)
+            if (
+                LimitSwitch_forward.getState() ==
+                slight_ButtonInput::state_Standby
+            ) {
+                system_state = SYSSTATE_calibrating_forward_start;
+            } else {
+                system_state = SYSSTATE_calibrating_reverse_start;
+            }
+        } else {
+            // check if reverse is todo
+            if (calibration_direction_reverse_done == false) {
+                // check if reverse is possible (limit switch)
+                if (
+                    LimitSwitch_reverse.getState() ==
+                    slight_ButtonInput::state_Standby
+                ) {
+                    system_state = SYSSTATE_calibrating_reverse_start;
+                } else {
+                    system_state = SYSSTATE_calibrating_forward_start;
+                }
+            }
+        } // else check forward todo
+    }  // else check if both directions are done
 }
 
 void slight_StepperManager::system_state_calibrating_global_checks() {
@@ -396,6 +449,18 @@ void slight_StepperManager::system_state_calibrating_global_checks() {
             system_state = SYSSTATE_error_new;
             error_type = ERROR_timeout;
         }
+    }
+}
+
+
+void slight_StepperManager::system_state_calibrating_forward_start() {
+    // start calibration
+    if (motor_move_forward_raw()) {
+        system_state = SYSSTATE_calibrating_forward;
+        system_event_callback();
+    } else {
+        system_state = SYSSTATE_error_new;
+        error_type = ERROR_motorstart;
     }
 }
 
@@ -428,6 +493,12 @@ void slight_StepperManager::system_state_calibrating_forward_checks() {
 void slight_StepperManager::system_state_calibrating_forward_finished() {
     // set limit to current position
     motor.forwardLimit = motor.getPos();
+    calibration_direction_forward_done = true;
+    // system_state = system_state_calibrating_reverse_start;
+    system_state = SYSSTATE_calibrating_check_next;
+}
+
+void slight_StepperManager::system_state_calibrating_reverse_start() {
     // start calibration reverse
     if (motor_move_reverse_raw()) {
         system_state = SYSSTATE_calibrating_reverse;
@@ -465,15 +536,16 @@ void slight_StepperManager::system_state_calibrating_reverse_checks() {
 
 void slight_StepperManager::system_state_calibrating_reverse_finished() {
     // set limit to current position
-    motor.forwardLimit = motor.getPos();
+    motor.reverseLimit = motor.getPos();
+    calibration_direction_reverse_done = true;
     // calibration finished
-    system_state = SYSSTATE_calibrating_finished;
+    // system_state = SYSSTATE_calibrating_finished;
+    system_state = SYSSTATE_calibrating_check_next;
 }
 
 void slight_StepperManager::system_state_calibrating_finished() {
     // set speed to original
-    speed_backup = motor.getMaxSpeed();
-    motor.setMaxSpeed(calibration_speed);
+    motor.setMaxSpeed(speed_backup);
     // all fine now ;-)
     system_event_callback();
     system_state = SYSSTATE_standby;
@@ -506,7 +578,7 @@ void slight_StepperManager::system_state_update() {
             system_event_callback();
         } break;
         case SYSSTATE_dirty: {
-            // generate event to master so that user can be informed
+            // wait
         } break;
         case SYSSTATE_error_new: {
             // generate event to master so that user can be informed
@@ -514,16 +586,25 @@ void slight_StepperManager::system_state_update() {
             system_event_callback();
         } break;
         case SYSSTATE_error: {
-            // generate event to master so that user can be informed
+            // wait
         } break;
         case SYSSTATE_calibrating_start: {
             system_state_calibrating_start();
+        } break;
+        case SYSSTATE_calibrating_check_next: {
+            system_state_calibrating_check_next();
+        } break;
+        case SYSSTATE_calibrating_forward_start: {
+            system_state_calibrating_forward_start();
         } break;
         case SYSSTATE_calibrating_forward: {
             system_state_calibrating_forward_checks();
         } break;
         case SYSSTATE_calibrating_forward_finished: {
             system_state_calibrating_forward_finished();
+        } break;
+        case SYSSTATE_calibrating_reverse_start: {
+            system_state_calibrating_reverse_start();
         } break;
         case SYSSTATE_calibrating_reverse: {
             system_state_calibrating_reverse_checks();
@@ -558,6 +639,9 @@ void slight_StepperManager::print_error(Print &out, error_t error) {
         case ERROR_calibrating: {
             out.print(F("calibrating"));
         } break;
+        case ERROR_emergencystop: {
+            out.print(F("emergency stop"));
+        } break;
     }
 }
 
@@ -584,14 +668,23 @@ void slight_StepperManager::print_state(Print &out, sysstate_t state) {
         case SYSSTATE_error: {
             out.print(F("error"));
         } break;
+        case SYSSTATE_calibrating_check_next: {
+            out.print(F("cali check next"));
+        } break;
         case SYSSTATE_calibrating_start: {
             out.print(F("cali start"));
+        } break;
+        case SYSSTATE_calibrating_forward_start: {
+            out.print(F("cali forward start"));
         } break;
         case SYSSTATE_calibrating_forward: {
             out.print(F("cali forward"));
         } break;
         case SYSSTATE_calibrating_forward_finished: {
             out.print(F("cali forward finished"));
+        } break;
+        case SYSSTATE_calibrating_reverse_start: {
+            out.print(F("cali reverse start"));
         } break;
         case SYSSTATE_calibrating_reverse: {
             out.print(F("cali reverse"));
