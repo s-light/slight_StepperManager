@@ -171,7 +171,7 @@ void slight_StepperManager::LimitSwitch_onEvent(
                 case SYSSTATE_hold: {
                     // system_state = SYSSTATE_dirty;
                     system_state = SYSSTATE_error;
-                    error_type = ERROR_limitswitchs;
+                    error_type = ERROR_mechanics_moved;
                 } break;
                 default: {
                     // nothing to do here.
@@ -383,6 +383,8 @@ void slight_StepperManager::system_state_calibrating_start() {
     // reset limits
     motor.forwardLimit = calibration_limit;
     motor.reverseLimit = -calibration_limit;
+    // reset motor positon
+    motor.setPos(0);
     // backup current speed
     speed_backup = motor.getMaxSpeed();
     // set speed to slow
@@ -671,6 +673,9 @@ void slight_StepperManager::print_error(Print &out, error_t error) {
         } break;
         case ERROR_calibrating: {
             out.print(F("calibrating"));
+        } break;
+        case ERROR_mechanics_moved: {
+            out.print(F("mechanics moved"));
         } break;
         case ERROR_emergencystop: {
             out.print(F("emergency stop"));

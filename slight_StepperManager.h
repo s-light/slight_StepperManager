@@ -93,6 +93,7 @@ public:
         ERROR_motorstart,
         ERROR_motorstop,
         ERROR_calibrating,
+        ERROR_mechanics_moved,
         ERROR_emergencystop,
     };
     error_t error_type;
