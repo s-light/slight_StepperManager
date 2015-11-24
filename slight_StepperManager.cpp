@@ -75,9 +75,9 @@ slight_StepperManager::slight_StepperManager(
 // init & update
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-void slight_StepperManager::init() {
+void slight_StepperManager::init(Print &out) {
     // init motor things
-    motor_init(Serial);
+    motor_init(out);
 }
 
 void slight_StepperManager::update() {
@@ -98,23 +98,24 @@ void slight_StepperManager::LimitSwitch_onEvent(
     slight_ButtonInput *pInstance,
     uint8_t event
 ) {
-    // Serial.print(F("Instance ID:"));
-    // Serial.println((*pInstance).getID());
-    // Serial.print(F("Event: "));
-    // (*pInstance).printEvent(Serial, event);
-    // Serial.println();
+    // Print &out = Serial
+    // out.print(F("Instance ID:"));
+    // out.println((*pInstance).getID());
+    // out.print(F("Event: "));
+    // (*pInstance).printEvent(out, event);
+    // out.println();
 
     uint8_t limitswitch_id = (*pInstance).getID();
 
     // show event additional infos:
     switch (event) {
         // case slight_ButtonInput::event_StateChanged : {
-        //     Serial.print(F("\t state: "));
-        //     (*pInstance).printState(Serial);
-        //     Serial.println();
+        //     out.print(F("\t state: "));
+        //     (*pInstance).printState(out);
+        //     out.println();
         // } break;
         case slight_ButtonInput::event_Down : {
-            // Serial.println(F("button pressed down!"));
+            // out.println(F("button pressed down!"));
             switch (limitswitch_id) {
                 case 0: {
                     // limit switch 1
@@ -162,11 +163,11 @@ void slight_StepperManager::LimitSwitch_onEvent(
             }  // end switch button_id
         } break;
         // case slight_ButtonInput::event_HoldingDown : {
-        //     Serial.print(F("duration active: "));
-        //     Serial.println((*pInstance).getDurationActive());
+        //     out.print(F("duration active: "));
+        //     out.println((*pInstance).getDurationActive());
         // } break;
         case slight_ButtonInput::event_Up : {
-            // Serial.println(F("up"));
+            // out.println(F("up"));
             // react if motor is not moving but
             // mechanics are moving away from switch.
             switch (system_state) {
@@ -182,20 +183,20 @@ void slight_StepperManager::LimitSwitch_onEvent(
             }  // switch system_state
         } break;
         // case slight_ButtonInput::event_Click : {
-        //     // Serial.println(F("click"));
+        //     // out.println(F("click"));
         // } break;
         // case slight_ButtonInput::event_ClickLong : {
-        //     // Serial.println(F("click long"));
+        //     // out.println(F("click long"));
         // } break;
         // case slight_ButtonInput::event_ClickDouble : {
-        //     Serial.println(F("click double"));
+        //     out.println(F("click double"));
         // } break;
         // case slight_ButtonInput::event_ClickTriple : {
-        //     Serial.println(F("click triple"));
+        //     out.println(F("click triple"));
         // } break;
         // case slight_ButtonInput::event_ClickMulti : {
-        //     Serial.print(F("click count: "));
-        //     Serial.println((*pInstance).getClickCount());
+        //     out.print(F("click count: "));
+        //     out.println((*pInstance).getClickCount());
         // } break;
     }  // end switch
 }
@@ -280,7 +281,6 @@ void slight_StepperManager::motor_check_event() {
 
 
 bool slight_StepperManager::motor_move_forward() {
-    // Serial.println(F("slight_StepperManager::motor_move_forward();"));
     bool motor_started = false;
     // check for system_state
     // only move if standby or moving.
@@ -300,7 +300,6 @@ bool slight_StepperManager::motor_move_forward() {
 }
 
 bool slight_StepperManager::motor_move_reverse() {
-    // Serial.println(F("slight_StepperManager::motor_move_reverse();"));
     bool motor_started = false;
     // check for system_state
     // only move if standby or moving.
@@ -357,7 +356,6 @@ bool slight_StepperManager::motor_move_reverse_raw() {
 
 // this is the public interface to start calibration
 void slight_StepperManager::calibration_start() {
-    // Serial.println(F("slight_StepperManager::calibration_start();"));
     system_state = SYSSTATE_calibrating_start;
 }
 
@@ -373,7 +371,6 @@ uint16_t slight_StepperManager::calibration_limit_threshold_get() {
 
 // public emergency stop
 void slight_StepperManager::system_emergencystop() {
-    // Serial.println(F("slight_StepperManager::system_emergencystop();"));
     motor.stop();
     motor.disable();
     // something went wrong

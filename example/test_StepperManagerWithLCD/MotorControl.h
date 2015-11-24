@@ -100,7 +100,7 @@ namespace MotorControl {
     // public functions
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    void init ();
+    void init (Print &out);
     void update ();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

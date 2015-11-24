@@ -62,7 +62,7 @@ public:
 
 
 
-    void init();
+    void init(Print &);
     void update();
 
     // callback

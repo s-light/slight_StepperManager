@@ -207,9 +207,9 @@ namespace MotorControl {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Stepper Manager
 
-    void init() {
+    void init(Print &out) {
         LimitSwitchs_init();
-        myStepperManager.init();
+        myStepperManager.init(out);
     }
 
     void update() {

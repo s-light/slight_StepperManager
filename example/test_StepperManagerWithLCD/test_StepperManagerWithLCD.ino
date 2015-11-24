@@ -1168,7 +1168,7 @@ void setup() {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // setup motor
-        MoCon::init();
+        MoCon::init(Serial);
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // show serial commands
