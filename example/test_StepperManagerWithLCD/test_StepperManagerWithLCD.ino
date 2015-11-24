@@ -76,7 +76,6 @@
 #include "lcd_special_character_patterns.h"
 
 
-#include <kissStepper.h>
 #include <LiquidCrystal.h>
 
 #include <slight_DebugMenu.h>
@@ -84,9 +83,13 @@
 // #include <slight_RotaryEncoder.h>
 #include <slight_LiquidCrystalDummy.h>
 
-
+#include <kissStepper.h>
 #include <slight_StepperManager.h>
 
+#include "MotorControl.h"
+// this includes the namespace 'MotorControl'
+// create alias for namespace
+namespace MoCon = MotorControl;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Info
@@ -265,119 +268,6 @@ slight_ButtonInput myButtons[myButtons_COUNT] = {
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// StepperManager
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Stepper Motor
-
-    // Pins for DRV8825 and Genuino micro on breadboard
-    kissPinAssignments motor_pinAssignments(
-         7,  // pinDir
-         8,  // pinStep
-        12,  // pinEnable
-        11,  // pinMS1
-        10,  // pinMS2
-         9   // pinMS3
-    );
-
-    // kissMicrostepConfig for TI DRV8825
-    // http://www.ti.com/product/drv8825?qgpn=drv8825
-    // 8.3.5 Microstepping Indexer
-    // Table    1.    Stepping    Format
-    //     MODE2 MODE1 MODE0 STEP MODE
-    //     0     0     0     Full step (2-phase excitation) with 71% current
-    //     0     0     1     1/2  step (1-2 phase excitation)
-    //     0     1     0     1/4  step (W1-2 phase excitation)
-    //     0     1     1      8   microsteps/step
-    //     1     0     0     16   microsteps/step
-    //     1     0     1     32   microsteps/step
-    //     1     1     0     32   microsteps/step
-    //     1     1     1     32   microsteps/step
-    kissMicrostepConfig motor_microstepConfig(
-        MICROSTEP_32,
-        B01010101,  // MS1Config
-        B00110011,  // MS2Config
-        B00001111   // MS3Config
-    );
-
-    // instantiate the kissStepper
-    kissStepper myStepperMotor(
-        motor_pinAssignments,
-        motor_microstepConfig
-    );
-
-    // number of full steps in one revolution of the motor
-    const uint16_t motor_full_steps_revolution = 200;
-    const uint8_t motor_max_microsteps_factor = 32;
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Limit Switchs
-
-    const uint16_t LimitSwitch_duration_Debounce      =   10;
-    const uint16_t LimitSwitch_duration_HoldingDown   = 9000;
-    const uint16_t LimitSwitch_duration_ClickSingle   =   30;
-    const uint16_t LimitSwitch_duration_ClickLong     = 9000;
-    const uint16_t LimitSwitch_duration_ClickDouble   =  200;
-
-    const uint8_t LimitSwitch_forward = 0;
-    const uint8_t LimitSwitch_reverse = 1;
-
-    const uint8_t LimitSwitchs_COUNT = 2;
-
-
-    slight_ButtonInput LimitSwitchs[LimitSwitchs_COUNT] = {
-        slight_ButtonInput(
-            LimitSwitch_forward,
-            MOSI,
-            LimitSwitch_getInput,
-            LimitSwitch_onEvent,
-            LimitSwitch_duration_Debounce,
-            LimitSwitch_duration_HoldingDown,
-            LimitSwitch_duration_ClickSingle,
-            LimitSwitch_duration_ClickLong,
-            LimitSwitch_duration_ClickDouble
-        ),
-        slight_ButtonInput(
-            LimitSwitch_reverse,
-            MISO,
-            LimitSwitch_getInput,
-            LimitSwitch_onEvent,
-            LimitSwitch_duration_Debounce,
-            LimitSwitch_duration_HoldingDown,
-            LimitSwitch_duration_ClickSingle,
-            LimitSwitch_duration_ClickLong,
-            LimitSwitch_duration_ClickDouble
-        )
-    };
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Stepper Manager
-
-    // maximal amount of time (milliseconds) motor is allowed to continusly run
-    const uint16_t motor_move_timeout = 8000;
-
-    // set limit to what calibration will drive as min and max values:
-    const int8_t calibration_limit_turns = 3;
-    const int32_t calibration_limit =
-        motor_max_microsteps_factor *
-        motor_full_steps_revolution *
-        calibration_limit_turns;
-    const int16_t calibration_speed = 100;
-    uint16_t calibration_limit_threshold = motor_max_microsteps_factor;
-
-
-    slight_StepperManager myStepperManager(
-        myStepperMotor,
-        LimitSwitchs[LimitSwitch_forward],
-        LimitSwitchs[LimitSwitch_reverse],
-        motor_move_timeout,
-        calibration_limit,
-        calibration_speed,
-        calibration_limit_threshold
-    );
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // other things..
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -459,13 +349,13 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             out.print(F("\t set motor acceleration "));
             uint16_t acceleration = atoi(&command[1]);
             out.print(acceleration);
-            myStepperMotor.setAccel(acceleration);
+            MoCon::myStepperMotor.setAccel(acceleration);
             out.println();
         } break;
         case 'A': {
             out.print(F("\t motor get acceleration:"));
             uint16_t acceleration;
-            acceleration = myStepperMotor.getAccel();
+            acceleration = MoCon::myStepperMotor.getAccel();
             out.print(acceleration);
             out.println();
         } break;
@@ -473,20 +363,20 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             out.print(F("\t motor set MaxSpeed "));
             uint16_t speed = atoi(&command[1]);
             out.print(speed);
-            myStepperMotor.setMaxSpeed(speed);
+            MoCon::myStepperMotor.setMaxSpeed(speed);
             out.println();
         } break;
         case 'S': {
             out.print(F("\t motor get MaxSpeed:"));
             uint16_t speed;
-            speed = myStepperMotor.getMaxSpeed();
+            speed = MoCon::myStepperMotor.getMaxSpeed();
             out.print(speed);
             out.println();
         } break;
         case 'C': {
             out.print(F("\t motor get current speed:"));
             uint16_t speed;
-            speed = myStepperMotor.getCurSpeed();
+            speed = MoCon::myStepperMotor.getCurSpeed();
             out.print(speed);
             out.println();
         } break;
@@ -497,35 +387,35 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             bool flag_value_valid = false;
             switch (mode) {
                 case 1: {
-                    myStepperMotor.setDriveMode(FULL_STEP);
+                    MoCon::myStepperMotor.setDriveMode(FULL_STEP);
                     flag_value_valid = true;
                 } break;
                 case 2: {
-                    myStepperMotor.setDriveMode(HALF_STEP);
+                    MoCon::myStepperMotor.setDriveMode(HALF_STEP);
                     flag_value_valid = true;
                 } break;
                 case 4: {
-                    myStepperMotor.setDriveMode(MICROSTEP_4);
+                    MoCon::myStepperMotor.setDriveMode(MICROSTEP_4);
                     flag_value_valid = true;
                 } break;
                 case 8: {
-                    myStepperMotor.setDriveMode(MICROSTEP_8);
+                    MoCon::myStepperMotor.setDriveMode(MICROSTEP_8);
                     flag_value_valid = true;
                 } break;
                 case 16: {
-                    myStepperMotor.setDriveMode(MICROSTEP_16);
+                    MoCon::myStepperMotor.setDriveMode(MICROSTEP_16);
                     flag_value_valid = true;
                 } break;
                 case 32: {
-                    myStepperMotor.setDriveMode(MICROSTEP_32);
+                    MoCon::myStepperMotor.setDriveMode(MICROSTEP_32);
                     flag_value_valid = true;
                 } break;
                 case 64: {
-                    myStepperMotor.setDriveMode(MICROSTEP_64);
+                    MoCon::myStepperMotor.setDriveMode(MICROSTEP_64);
                     flag_value_valid = true;
                 } break;
                 case 128: {
-                    myStepperMotor.setDriveMode(MICROSTEP_128);
+                    MoCon::myStepperMotor.setDriveMode(MICROSTEP_128);
                     flag_value_valid = true;
                 } break;
                 default: {
@@ -533,15 +423,15 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
                 }
             }
             if(flag_value_valid) {
-                myStepperManager.motor_print_mode(out, mode);
+                MoCon::myStepperManager.motor_print_mode(out, mode);
             }
             out.println();
         } break;
         case 'O': {
             out.print(F("\t motor get mode: "));
             uint16_t mode;
-            mode = myStepperMotor.getDriveMode();
-            myStepperManager.motor_print_mode(out, mode);
+            mode = MoCon::myStepperMotor.getDriveMode();
+            MoCon::myStepperManager.motor_print_mode(out, mode);
             out.println();
         } break;
         case 'e': {
@@ -549,10 +439,10 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             bool enabled = atoi(&command[1]);
             if(enabled) {
                 out.print(F("en"));
-                myStepperMotor.enable();
+                MoCon::myStepperMotor.enable();
             } else {
                 out.print(F("dis"));
-                myStepperMotor.disable();
+                MoCon::myStepperMotor.disable();
             }
             out.print(F("abled. "));
             out.print(enabled);
@@ -561,7 +451,7 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
         case 'E': {
             out.print(F("\t motor is enabled: "));
             bool isEnabled;
-            isEnabled = myStepperMotor.isEnabled();
+            isEnabled = MoCon::myStepperMotor.isEnabled();
             if(isEnabled) {
                 out.print(F("en"));
             } else {
@@ -575,17 +465,17 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
         case 'm': {
             out.print(F("\t motor moveTo "));
             int32_t position = atoi(&command[1]);
-            myStepperMotor.moveTo(position);
+            MoCon::myStepperMotor.moveTo(position);
             out.print(position);
             out.println();
         } break;
         case 'M': {
             out.print(F("\t motor get target:"));
-            int32_t position = myStepperMotor.getTarget();
-            if(position == myStepperMotor.forwardLimit){
+            int32_t position = MoCon::myStepperMotor.getTarget();
+            if(position == MoCon::myStepperMotor.forwardLimit){
                 out.print(F("forwardLimit"));
             } else {
-                if(position == myStepperMotor.reverseLimit){
+                if(position == MoCon::myStepperMotor.reverseLimit){
                     out.print(F("reverseLimit"));
                 } else {
                     out.print(position);
@@ -596,26 +486,26 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
         case 'p': {
             out.print(F("\t motor set position "));
             int32_t position = atoi(&command[1]);
-            myStepperMotor.setPos(position);
+            MoCon::myStepperMotor.setPos(position);
             out.print(position);
             out.println();
         } break;
         case 'P': {
             out.print(F("\t motor position: "));
             int32_t position;
-            position = myStepperMotor.getPos();
+            position = MoCon::myStepperMotor.getPos();
             out.print(position);
             out.println();
         } break;
         case 'l': {
             out.print(F("\t motor set limits:"));
             out.println();
-            // uint16_t distLimit = myStepperMotor.fullStepVal * 200;
-            // myStepperMotor.forwardLimit = distLimit;
-            // myStepperMotor.reverseLimit = -distLimit;
+            // uint16_t distLimit = MoCon::myStepperMotor.fullStepVal * 200;
+            // MoCon::myStepperMotor.forwardLimit = distLimit;
+            // MoCon::myStepperMotor.reverseLimit = -distLimit;
             // get first limit
             int32_t limit_forward = atol(&command[1]);
-            myStepperMotor.forwardLimit = limit_forward;
+            MoCon::myStepperMotor.forwardLimit = limit_forward;
             // defaults to negative of limit_forward
             int32_t limit_reverse = limit_forward * -1;
 
@@ -627,45 +517,45 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
                 out.print(F("\t   --> no second parameter given. used negative first."));
                 out.println();
             }
-            myStepperMotor.reverseLimit = limit_reverse;
+            MoCon::myStepperMotor.reverseLimit = limit_reverse;
 
             // print current/new limits
             out.print(F("\t   forwardLimit: "));
-            out.print(myStepperMotor.forwardLimit);
+            out.print(MoCon::myStepperMotor.forwardLimit);
             out.println();
             out.print(F("\t   reverseLimit: "));
-            out.print(myStepperMotor.reverseLimit);
+            out.print(MoCon::myStepperMotor.reverseLimit);
             out.println();
         } break;
         case 'L': {
             out.print(F("\t motor limits: "));
             out.println();
             out.print(F("\t   forwardLimit: "));
-            out.print(myStepperMotor.forwardLimit);
+            out.print(MoCon::myStepperMotor.forwardLimit);
             out.println();
             out.print(F("\t   reverseLimit: "));
-            out.print(myStepperMotor.reverseLimit);
+            out.print(MoCon::myStepperMotor.reverseLimit);
             out.println();
         } break;
         //------------------------------------------
         case 'D': {
             out.print(F("\t motor stop "));
-            myStepperMotor.stop();
+            MoCon::myStepperMotor.stop();
             out.println();
         } break;
         case 'd': {
             out.print(F("\t motor decelerate "));
-            myStepperMotor.decelerate();
+            MoCon::myStepperMotor.decelerate();
             out.println();
         } break;
         case 'r': {
             out.print(F("\t motor run forward "));
-            myStepperMotor.moveTo(myStepperMotor.forwardLimit);
+            MoCon::myStepperMotor.moveTo(MoCon::myStepperMotor.forwardLimit);
             out.println();
         } break;
         case 'R': {
             out.print(F("\t motor run reverse "));
-            myStepperMotor.moveTo(myStepperMotor.reverseLimit);
+            MoCon::myStepperMotor.moveTo(MoCon::myStepperMotor.reverseLimit);
             out.println();
         } break;
         //---------------------------------------------------------------------
@@ -779,17 +669,17 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         //---------------------------------------------------------------------
         case 'c': {
             out.print(F("\t forward."));
-            myStepperManager.calibration_start();
+            MoCon::myStepperManager.calibration_start();
             out.println();
         } break;
         case 'f': {
             out.print(F("\t forward."));
-            myStepperManager.motor_move_forward();
+            MoCon::myStepperManager.motor_move_forward();
             out.println();
         } break;
         case 'r': {
             out.print(F("\t reverse."));
-            myStepperManager.motor_move_reverse();
+            MoCon::myStepperManager.motor_move_reverse();
             out.println();
         } break;
         case 'p': {
@@ -799,7 +689,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         } break;
         case 's': {
             out.print(F("\t emergency stop"));
-            myStepperManager.system_emergencystop();
+            MoCon::myStepperManager.system_emergencystop();
             out.println();
         } break;
         case 'l': {
@@ -807,7 +697,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             uint16_t threshold = atoi(&command[1]);
             out.print(threshold);
             out.println();
-            myStepperManager.calibration_limit_threshold_set(threshold);
+            MoCon::myStepperManager.calibration_limit_threshold_set(threshold);
         } break;
         //---------------------------------------------------------------------
         case '_': {
@@ -942,48 +832,48 @@ void myButton_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
             switch (button_id) {
                 case 0:{
                     // start calibration
-                    myStepperManager.calibration_start();
+                    MoCon::myStepperManager.calibration_start();
                     // toggle enable
-                    // if(myStepperMotor.isEnabled()) {
-                    //     myStepperMotor.disable();
+                    // if(MoCon::myStepperMotor.isEnabled()) {
+                    //     MoCon::myStepperMotor.disable();
                     // } else {
-                    //     myStepperMotor.enable();
+                    //     MoCon::myStepperMotor.enable();
                     // }
                 }break;
                 case 1:{
                     // speed
                     uint16_t speed;
-                    speed = myStepperMotor.getMaxSpeed();
+                    speed = MoCon::myStepperMotor.getMaxSpeed();
                     speed = speed + 50;
                     if(speed > 400) {
                         speed = 50;
                     }
-                    myStepperMotor.setMaxSpeed(speed);
+                    MoCon::myStepperMotor.setMaxSpeed(speed);
                     display_motorspeed_update();
                 }break;
                 case 2:{
                     // user stop
-                    // myStepperMotor.stop();
-                    if(myStepperMotor.isEnabled()) {
-                        myStepperMotor.disable();
+                    // MoCon::myStepperMotor.stop();
+                    if(MoCon::myStepperMotor.isEnabled()) {
+                        MoCon::myStepperMotor.disable();
                     } else {
-                        myStepperMotor.enable();
+                        MoCon::myStepperMotor.enable();
                     }
                 }break;
                 case 3: {
-                    // myStepperManager.motor_move_forward();
-                    if(myStepperManager.motor_move_state == 0) {
-                        myStepperManager.motor_move_forward();
+                    // MoCon::myStepperManager.motor_move_forward();
+                    if(MoCon::myStepperManager.motor_move_state == 0) {
+                        MoCon::myStepperManager.motor_move_forward();
                     } else {
-                        myStepperManager.motor.decelerate();
+                        MoCon::myStepperManager.motor.decelerate();
                     }
                 } break;
                 case 4: {
-                    // myStepperManager.motor_move_reverse();
-                    if(myStepperManager.motor_move_state == 0) {
-                        myStepperManager.motor_move_reverse();
+                    // MoCon::myStepperManager.motor_move_reverse();
+                    if(MoCon::myStepperManager.motor_move_state == 0) {
+                        MoCon::myStepperManager.motor_move_reverse();
                     } else {
-                        myStepperManager.motor.decelerate();
+                        MoCon::myStepperManager.motor.decelerate();
                     }
                 } break;
             }  // end switch button_id
@@ -994,7 +884,7 @@ void myButton_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
             switch (button_id) {
                 case 0:{
                     // move to home
-                    myStepperMotor.moveTo(0);
+                    MoCon::myStepperMotor.moveTo(0);
                 } break;
             }  // end switch button_id
         } break;
@@ -1039,16 +929,16 @@ void display_init(Print &out) {
     out.println(F("\t draw full"));
     display_drawfull();
 
-    myStepperManager.motor_move_event_set_callback(
+    MoCon::myStepperManager.motor_move_event_set_callback(
         display_motorstate_update
     );
-    myStepperManager.motor_acceleration_event_set_callback(
+    MoCon::myStepperManager.motor_acceleration_event_set_callback(
         display_motoraccel_update
     );
-    myStepperManager.motor_enable_event_set_callback(
+    MoCon::myStepperManager.motor_enable_event_set_callback(
         display_motorenabled_update
     );
-    myStepperManager.system_event_set_callback(
+    MoCon::myStepperManager.system_event_set_callback(
         display_systemevent
     );
 }
@@ -1063,7 +953,7 @@ void display_init(Print &out) {
 void display_motorspeed_update() {
     // draw all display parts
     char* buffer = "----";
-    sprintf(buffer, "%4u", myStepperMotor.getMaxSpeed());
+    sprintf(buffer, "%4u", MoCon::myStepperMotor.getMaxSpeed());
     lcd.setCursor(12,0);
     lcd.print(buffer);
 }
@@ -1079,7 +969,7 @@ void display_motorspeed() {
 
 void display_motorstate_update() {
     lcd.setCursor(0,0);
-    switch(myStepperManager.motor_move_state) {
+    switch(MoCon::myStepperManager.motor_move_state) {
         // STOP
         case 0: {
             // lcd.write(B00010110);
@@ -1101,10 +991,10 @@ void display_motorstate_update() {
 
 void display_motoraccel_update() {
     lcd.setCursor(1,0);
-    switch(myStepperManager.motor_accel_state) {
+    switch(MoCon::myStepperManager.motor_accel_state) {
         // run
         case 0: {
-            if(myStepperManager.motor_move_state != 0) {
+            if(MoCon::myStepperManager.motor_move_state != 0) {
                 lcd.write('=');
             } else {
                 lcd.write(' ');
@@ -1125,7 +1015,7 @@ void display_motoraccel_update() {
 
 void display_motorenabled_update() {
     lcd.setCursor(2,0);
-    if(myStepperManager.motor_isenabled) {
+    if(MoCon::myStepperManager.motor_isenabled) {
         lcd.write('*');
     } else {
         lcd.write(0);
@@ -1134,35 +1024,35 @@ void display_motorenabled_update() {
 
 void display_systemevent() {
     Serial.print(F("system_state: "));
-    myStepperManager.print_state(Serial, myStepperManager.system_state);
+    MoCon::myStepperManager.print_state(Serial, MoCon::myStepperManager.system_state);
     Serial.println();
     lcd.setCursor(0,1);
     // clear second line of lcd
     lcd.print(F("                "));
     lcd.setCursor(0,1);
     if(
-        myStepperManager.system_state ==
+        MoCon::myStepperManager.system_state ==
         slight_StepperManager::SYSSTATE_error
     ) {
         // print error
-        myStepperManager.print_error(lcd, myStepperManager.error_type);
+        MoCon::myStepperManager.print_error(lcd, MoCon::myStepperManager.error_type);
         Serial.print(F("error: "));
-        myStepperManager.print_error(Serial, myStepperManager.error_type);
+        MoCon::myStepperManager.print_error(Serial, MoCon::myStepperManager.error_type);
         Serial.println();
     } else {
         // print system state
-        myStepperManager.print_state(lcd, myStepperManager.system_state);
+        MoCon::myStepperManager.print_state(lcd, MoCon::myStepperManager.system_state);
         // if calibration finished
         if(
-            myStepperManager.system_state ==
+            MoCon::myStepperManager.system_state ==
             slight_StepperManager::SYSSTATE_calibrating_finished
         ) {
             // print limit values to serial
             Serial.print(F(" *forwardLimit: "));
-            Serial.print(myStepperManager.motor.forwardLimit);
+            Serial.print(MoCon::myStepperManager.motor.forwardLimit);
             Serial.println();
             Serial.print(F(" *reverseLimit: "));
-            Serial.print(myStepperManager.motor.reverseLimit);
+            Serial.print(MoCon::myStepperManager.motor.reverseLimit);
             Serial.println();
         }
     }
@@ -1194,54 +1084,6 @@ void display_periodic_update() {
         display_motorspeed_update();
     }
 }
-
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// StepperManager
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Stepper Motor
-    // all handled inside of StepperManager
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Limit Switchs
-    void LimitSwitchs_init() {
-        for (size_t index = 0; index < LimitSwitchs_COUNT; index++) {
-            pinMode(LimitSwitchs[index].getPin(), INPUT_PULLUP);
-            LimitSwitchs[index].begin();
-        }
-    }
-
-    void LimitSwitchs_update() {
-        for (size_t index = 0; index < LimitSwitchs_COUNT; index++) {
-            LimitSwitchs[index].update();
-        }
-    }
-
-    boolean LimitSwitch_getInput(uint8_t id, uint8_t pin) {
-        // read input invert reading - button closes to GND.
-        // check HWB
-        // return ! (PINE & B00000100);
-        return !digitalRead(pin);
-    }
-
-    void LimitSwitch_onEvent(slight_ButtonInput *pInstance, uint8_t event) {
-        myStepperManager.LimitSwitch_onEvent(pInstance, event);
-    }
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Stepper Manager
-
-    void StepperManager_init() {
-        LimitSwitchs_init();
-        myStepperManager.init();
-    }
-
-    void StepperManager_update() {
-        LimitSwitchs_update();
-        myStepperManager.update();
-    }
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1326,7 +1168,7 @@ void setup() {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // setup motor
-        StepperManager_init();
+        MoCon::init();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // show serial commands
@@ -1355,7 +1197,7 @@ void loop() {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Stepper Manager
-        StepperManager_update();
+        MoCon::update();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // display
