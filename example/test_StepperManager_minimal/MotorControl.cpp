@@ -60,14 +60,20 @@ namespace MotorControl {
     // Stepper Motor
 
     // Pins for DRV8825 and Genuino micro on breadboard
-    // debug full setup
+    // kissPinAssignments motor_pinAssignments(
+    //      7,  // pinDir
+    //      8,  // pinStep
+    //     12,  // pinEnable
+    //     11,  // pinMS1
+    //     10,  // pinMS2
+    //      9   // pinMS3
+    // );
+
+    // test setup with lower pincount
     kissPinAssignments motor_pinAssignments(
-         7,  // pinDir
-         8,  // pinStep
-        12,  // pinEnable
-        11,  // pinMS1
-        10,  // pinMS2
-         9   // pinMS3
+        10,  // pinDir
+        11,  // pinStep
+         9  // pinEnable
     );
 
     // kissMicrostepConfig for TI DRV8825
@@ -120,7 +126,7 @@ namespace MotorControl {
     slight_ButtonInput LimitSwitchs[LimitSwitchs_COUNT] = {
         slight_ButtonInput(
             LimitSwitch_forward,
-            MOSI,
+            SCK,
             LimitSwitch_getInput,
             LimitSwitch_onEvent,
             LimitSwitch_duration_Debounce,
