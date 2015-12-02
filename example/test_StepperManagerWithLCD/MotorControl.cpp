@@ -154,18 +154,44 @@ namespace MotorControl {
         motor_max_microsteps_factor *
         motor_full_steps_revolution *
         calibration_limit_turns;
-    const int16_t calibration_speed = 100;
-    uint16_t calibration_limit_threshold = motor_max_microsteps_factor;
 
+    // uint16_t calibration_limit_threshold = motor_max_microsteps_factor;
+    // uint16_t calibration_speed = 50;
+    // uint16_t calibration_acceleration = 25;
+    // uint16_t move_speed = 200;
+    // uint16_t move_acceleration = 50;
+    //
+    // slight_StepperManager myStepperManager(
+    //     myStepperMotor,
+    //     LimitSwitchs[LimitSwitch_forward],
+    //     LimitSwitchs[LimitSwitch_reverse],
+    //     motor_move_timeout,
+    //     calibration_limit,
+    //     calibration_speed,
+    //     calibration_acceleration,
+    //     move_speed,
+    //     move_acceleration
+    // );
 
     slight_StepperManager myStepperManager(
+        // kissStepper &motor_ref,
         myStepperMotor,
+        // slight_ButtonInput &LimitSwitch_forward_ref,
         LimitSwitchs[LimitSwitch_forward],
+        // slight_ButtonInput &LimitSwitch_reverse_ref,
         LimitSwitchs[LimitSwitch_reverse],
+        // const uint16_t motor_move_timeout_new = 5000,
         motor_move_timeout,
+        // const int32_t calibration_limit_new = 12800,
         calibration_limit,
-        calibration_speed,
-        calibration_limit_threshold
+        // uint16_t calibration_speed_new = 50,
+        50,
+        // uint16_t calibration_acceleration_new = 25,
+        25,
+        // uint16_t move_speed_new = 200,
+        200,
+        // uint16_t move_acceleration_new = 50
+        50
     );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -51,17 +51,23 @@ slight_StepperManager::slight_StepperManager(
     slight_ButtonInput &LimitSwitch_reverse_ref,
     const uint16_t motor_move_timeout_new = 5000,
     const int32_t calibration_limit_new = 12800,
-    const int16_t calibration_speed_new = 50,
-    uint16_t calibration_limit_threshold_new = 32
+    uint16_t calibration_speed_new = 50,
+    uint16_t calibration_acceleration_new = 25,
+    // uint16_t calibration_limit_threshold_new = 32
+    uint16_t move_speed_new = 200,
+    uint16_t move_acceleration_new = 50
 ) :
     motor(motor_ref),
     LimitSwitch_forward(LimitSwitch_forward_ref),
     LimitSwitch_reverse(LimitSwitch_reverse_ref),
     motor_move_timeout(motor_move_timeout_new),
-    calibration_limit(calibration_limit_new),
-    calibration_speed(calibration_speed_new)
+    calibration_limit(calibration_limit_new)
 {
-    calibration_limit_threshold = calibration_limit_threshold_new;
+    calibration_speed = calibration_speed_new;
+    calibration_acceleration = calibration_acceleration_new;
+    move_speed = move_speed_new;
+    move_acceleration = move_acceleration_new;
+    // calibration_limit_threshold = calibration_limit_threshold_new;
 
     error_type = ERROR_none;
     system_state = SYSSTATE_dirty;
@@ -172,7 +178,8 @@ void slight_StepperManager::LimitSwitch_onEvent(
             // mechanics are moving away from switch.
             switch (system_state) {
                 case SYSSTATE_standby:
-                case SYSSTATE_hold: {
+                case SYSSTATE_hold_forward:
+                case SYSSTATE_hold_reverse: {
                     // system_state = SYSSTATE_dirty;
                     error_type = ERROR_mechanics_moved;
                     system_error();
@@ -286,7 +293,8 @@ bool slight_StepperManager::motor_move_forward() {
     // only move if standby or moving.
     switch (system_state) {
         case SYSSTATE_standby:
-        case SYSSTATE_hold:
+        case SYSSTATE_hold_forward:
+        case SYSSTATE_hold_reverse:
         case SYSSTATE_moving_forward:
         case SYSSTATE_moving_reverse: {
             motor_started = motor_move_forward_raw();
@@ -305,7 +313,8 @@ bool slight_StepperManager::motor_move_reverse() {
     // only move if standby or moving.
     switch (system_state) {
         case SYSSTATE_standby:
-        case SYSSTATE_hold:
+        case SYSSTATE_hold_forward:
+        case SYSSTATE_hold_reverse:
         case SYSSTATE_moving_forward:
         case SYSSTATE_moving_reverse: {
             motor_started = motor_move_reverse_raw();
@@ -379,6 +388,8 @@ void slight_StepperManager::system_emergencystop() {
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// internal calibration things
 
 void slight_StepperManager::system_state_calibrating_start() {
     // reset limits
@@ -387,9 +398,12 @@ void slight_StepperManager::system_state_calibrating_start() {
     // reset motor positon
     motor.setPos(0);
     // backup current speed
-    speed_backup = motor.getMaxSpeed();
+    // move_speed = motor.getMaxSpeed();
+    // move_acceleration = motor.getAccel();
+    // not needed anymore. move_speed is hold internaly.
     // set speed to slow
     motor.setMaxSpeed(calibration_speed);
+    motor.setAccel(calibration_acceleration);
     // reset error
     error_type = ERROR_none;
     // reset direction checks
@@ -544,9 +558,26 @@ void slight_StepperManager::system_state_calibrating_reverse_finished() {
 
 void slight_StepperManager::system_state_calibrating_finished() {
     // set speed to original
-    motor.setMaxSpeed(speed_backup);
+    motor.setMaxSpeed(move_speed);
+    motor.setAccel(move_acceleration);
     // all fine now ;-)
-    system_state = SYSSTATE_hold;
+    // system_state = SYSSTATE_hold;
+    // check where we are.
+    if (
+        (LimitSwitch_forward.getState() ==
+        slight_ButtonInput::state_Active)
+    ) {
+        // all fine :-)
+        system_state = SYSSTATE_hold_forward;
+    } else {
+        if (
+            (LimitSwitch_reverse.getState() ==
+            slight_ButtonInput::state_Active)
+        ) {
+            // all fine :-)
+            system_state = SYSSTATE_hold_reverse;
+        }
+    }
     // cali
     // final check
     // if (error_type == ERROR_none) {
@@ -557,6 +588,8 @@ void slight_StepperManager::system_state_calibrating_finished() {
     // }
 }
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// internal state maschine
 
 void slight_StepperManager::system_state_update() {
     // check if state has changed.
@@ -578,7 +611,10 @@ void slight_StepperManager::system_state_update() {
         case SYSSTATE_standby: {
             // nothing to do.
         } break;
-        case SYSSTATE_hold: {
+        case SYSSTATE_hold_forward: {
+            // nothing to do.
+        } break;
+        case SYSSTATE_hold_reverse: {
             // nothing to do.
         } break;
         case SYSSTATE_moving_forward: {
@@ -623,38 +659,42 @@ void slight_StepperManager::system_state_check_motor_state_change() {
     switch (system_state) {
         // only change system_state whene moving or standby.
         case SYSSTATE_standby:
-        case SYSSTATE_hold:
+        case SYSSTATE_hold_forward:
+        case SYSSTATE_hold_reverse:
         case SYSSTATE_moving_forward:
         case SYSSTATE_moving_reverse: {
             switch (motor_move_state) {
-                case 0: {
-                    // stop
+                case 0: {  // stop
                     if (motor.isEnabled()) {
                         // check if one of the Limit Switchs is reached.
                         // if not thats an error.
                         if (
                             (LimitSwitch_forward.getState() ==
-                            slight_ButtonInput::state_Active) ||
-                            (LimitSwitch_reverse.getState() ==
                             slight_ButtonInput::state_Active)
                         ) {
                             // all fine :-)
-                            system_state = SYSSTATE_hold;
+                            system_state = SYSSTATE_hold_forward;
                         } else {
-                            // thats an error
-                            error_type = ERROR_motorstop;
-                            system_error();
+                            if (
+                                (LimitSwitch_reverse.getState() ==
+                                slight_ButtonInput::state_Active)
+                            ) {
+                                // all fine :-)
+                                system_state = SYSSTATE_hold_reverse;
+                            } else {
+                                // thats an error
+                                error_type = ERROR_motorstop;
+                                system_error();
+                            }
                         }
                     } else {
                         system_state = SYSSTATE_standby;
                     }
                 } break;
-                case 1: {
-                    // forward
+                case 1: {  // forward
                     system_state = SYSSTATE_moving_forward;
                 } break;
-                case -1: {
-                    // reverse
+                case -1: {  // reverse
                     system_state = SYSSTATE_moving_reverse;
                 } break;
             }  // switch end
@@ -680,6 +720,12 @@ void slight_StepperManager::system_error() {
     system_state = SYSSTATE_error;
 }
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// public system state & error type helpers
+
+slight_StepperManager::error_t slight_StepperManager::error_type_get() {
+    return error_type;
+}
 
 void slight_StepperManager::print_error(Print &out, error_t error) {
     switch (error) {
@@ -714,6 +760,14 @@ void slight_StepperManager::print_error(Print &out, error_t error) {
     }
 }
 
+void slight_StepperManager::print_error(Print &out) {
+    print_error(out, error_type);
+}
+
+slight_StepperManager::sysstate_t slight_StepperManager::system_state_get() {
+    return system_state;
+}
+
 void slight_StepperManager::print_state(Print &out, sysstate_t state) {
     switch (state) {
         case SYSSTATE_notvalid: {
@@ -722,8 +776,11 @@ void slight_StepperManager::print_state(Print &out, sysstate_t state) {
         case SYSSTATE_standby: {
             out.print(F("standby"));
         } break;
-        case SYSSTATE_hold: {
-            out.print(F("hold"));
+        case SYSSTATE_hold_forward: {
+            out.print(F("hold forward"));
+        } break;
+        case SYSSTATE_hold_reverse: {
+            out.print(F("hold reverse"));
         } break;
         case SYSSTATE_moving_forward: {
             out.print(F("moving forward"));
@@ -767,10 +824,61 @@ void slight_StepperManager::print_state(Print &out, sysstate_t state) {
     }
 }
 
+void slight_StepperManager::print_state(Print &out) {
+    print_state(out, system_state);
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// event setters / callers
+// public speed setters / getters
+
+void slight_StepperManager::move_speed_set(
+    uint16_t stepsPerSec
+) {
+    move_speed = stepsPerSec;
+    // motor.setMaxSpeed(move_speed);
+}
+
+uint16_t slight_StepperManager::move_speed_get() {
+    return move_speed;
+}
+
+void slight_StepperManager::move_acceleration_set(
+    uint16_t stepsPerSecPerSec
+) {
+    move_acceleration = stepsPerSecPerSec;
+    // motor.setAccel(move_acceleration);
+}
+
+uint16_t slight_StepperManager::move_acceleration_get() {
+    return move_acceleration;
+}
+
+
+void slight_StepperManager::calibration_speed_set(
+    uint16_t stepsPerSec
+) {
+    calibration_speed = stepsPerSec;
+    // motor.setMaxSpeed(calibration_speed);
+}
+
+uint16_t slight_StepperManager::calibration_speed_get() {
+    return calibration_speed;
+}
+
+void slight_StepperManager::calibration_acceleration_set(
+    uint16_t stepsPerSecPerSec
+) {
+    calibration_acceleration = stepsPerSecPerSec;
+    // motor.setAccel(calibration_acceleration);
+}
+
+uint16_t slight_StepperManager::calibration_acceleration_get() {
+    return calibration_acceleration;
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// public event setters
 
 void slight_StepperManager::motor_move_event_set_callback(
     callback_t callback_function
@@ -795,6 +903,9 @@ void slight_StepperManager::system_event_set_callback(
 ) {
     callback_system_event = callback_function;
 }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// internal event callers
 
 void slight_StepperManager::system_event_callback() {
     if (callback_system_event) {

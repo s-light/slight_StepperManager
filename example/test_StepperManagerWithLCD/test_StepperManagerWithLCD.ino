@@ -1024,27 +1024,35 @@ void display_motorenabled_update() {
 
 void display_systemevent() {
     Serial.print(F("system_state: "));
-    MoCon::myStepperManager.print_state(Serial, MoCon::myStepperManager.system_state);
+    // MoCon::myStepperManager.print_state(
+    //     Serial,
+    //     MoCon::myStepperManager.system_state_get()
+    // );
+    MoCon::myStepperManager.print_state(Serial);
     Serial.println();
     lcd.setCursor(0,1);
     // clear second line of lcd
     lcd.print(F("                "));
     lcd.setCursor(0,1);
     if(
-        MoCon::myStepperManager.system_state ==
+        MoCon::myStepperManager.system_state_get() ==
         slight_StepperManager::SYSSTATE_error
     ) {
         // print error
-        MoCon::myStepperManager.print_error(lcd, MoCon::myStepperManager.error_type);
+        MoCon::myStepperManager.print_error(lcd);
         Serial.print(F("error: "));
-        MoCon::myStepperManager.print_error(Serial, MoCon::myStepperManager.error_type);
+        // MoCon::myStepperManager.print_error(
+        //     Serial,
+        //     MoCon::myStepperManager.error_type_get()
+        // );
+        MoCon::myStepperManager.print_error(Serial);
         Serial.println();
     } else {
         // print system state
-        MoCon::myStepperManager.print_state(lcd, MoCon::myStepperManager.system_state);
+        MoCon::myStepperManager.print_state(lcd);
         // if calibration finished
         if(
-            MoCon::myStepperManager.system_state ==
+            MoCon::myStepperManager.system_state_get() ==
             slight_StepperManager::SYSSTATE_calibrating_finished
         ) {
             // print limit values to serial

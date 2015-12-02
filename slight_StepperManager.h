@@ -56,8 +56,11 @@ public:
         slight_ButtonInput &LimitSwitch_reverse_ref,
         const uint16_t motor_move_timeout_new,
         const int32_t calibration_limit_new,
-        const int16_t calibration_speed_new,
-        uint16_t calibration_limit_threshold_new
+        uint16_t calibration_speed_new,
+        uint16_t calibration_acceleration_new,
+        // uint16_t calibration_limit_threshold_new,
+        uint16_t move_speed_new,
+        uint16_t move_acceleration_new
     );
 
 
@@ -96,19 +99,22 @@ public:
         ERROR_mechanics_moved,
         ERROR_emergencystop,
     };
-    error_t error_type;
-    void print_error(Print&, error_t);
+    // error_t error_type; now private
+    error_t error_type_get();
+    static void print_error(Print&, error_t);
+    void print_error(Print&);
 
     // enum class sysstate_t : uint8_t {      // c++ typesafe; arduino > 1.6.
     enum sysstate_t {  // c
         SYSSTATE_notvalid,
         SYSSTATE_standby,
-        SYSSTATE_hold,
+        SYSSTATE_hold_forward,
+        SYSSTATE_hold_reverse,
         SYSSTATE_moving_forward,
         SYSSTATE_moving_reverse,
         SYSSTATE_dirty,
         SYSSTATE_error,
-        SYSSTATE_calibrating_start =    20,
+        SYSSTATE_calibrating_start =    30,
         SYSSTATE_calibrating_check_next,
         SYSSTATE_calibrating_forward_start,
         SYSSTATE_calibrating_forward,
@@ -118,8 +124,10 @@ public:
         SYSSTATE_calibrating_reverse_finished,
         SYSSTATE_calibrating_finished,
     };
-    sysstate_t system_state;
-    void print_state(Print&, sysstate_t);
+    // sysstate_t system_state; now private
+    sysstate_t system_state_get();
+    static void print_state(Print&, sysstate_t);
+    void print_state(Print&);
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // stepper motor
@@ -137,6 +145,18 @@ public:
     bool motor_move_reverse_raw();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // speeds
+    void move_speed_set(uint16_t stepsPerSec);
+    uint16_t move_speed_get();
+    void move_acceleration_set(uint16_t stepsPerSecPerSec);
+    uint16_t move_acceleration_get();
+
+    void calibration_speed_set(uint16_t stepsPerSec);
+    uint16_t calibration_speed_get();
+    void calibration_acceleration_set(uint16_t stepsPerSecPerSec);
+    uint16_t calibration_acceleration_get();
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Limit Switchs
 
     slight_ButtonInput &LimitSwitch_forward;
@@ -149,15 +169,19 @@ private:
 
     const uint16_t motor_move_timeout;
     const int32_t calibration_limit;
-    const int32_t calibration_speed;
+    uint32_t calibration_speed;
+    uint32_t calibration_acceleration;
     uint16_t calibration_limit_threshold;
-    int32_t speed_backup;
+    uint16_t move_speed;
+    uint16_t move_acceleration;
 
     bool calibration_direction_forward_done;
     bool calibration_direction_reverse_done;
 
     uint32_t motor_move_started_timestamp;
 
+    error_t error_type;
+    sysstate_t system_state;
     sysstate_t system_state_last;
 
     callback_t callback_move_event;
