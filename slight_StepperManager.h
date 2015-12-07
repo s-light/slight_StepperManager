@@ -48,6 +48,7 @@ public:
     {}
 
     void enable(void);
+    void disable(void);
     void useStandby(bool);
     bool isUseStandby(void);
 
