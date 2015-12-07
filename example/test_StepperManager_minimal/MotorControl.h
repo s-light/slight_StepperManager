@@ -108,7 +108,7 @@ namespace MotorControl {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     extern slight_StepperManager myStepperManager;
-    extern kissStepper myStepperMotor;
+    extern kissStepper_TriState myStepperMotor;
 };
 
 #endif // MOTORCONTROL_H

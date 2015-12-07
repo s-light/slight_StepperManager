@@ -61,14 +61,14 @@ namespace MotorControl {
 
     // Pins for DRV8825 and Genuino micro on breadboard
     // debug full setup
-    kissPinAssignments motor_pinAssignments(
-         7,  // pinDir
-         8,  // pinStep
-        12,  // pinEnable
-        11,  // pinMS1
-        10,  // pinMS2
-         9   // pinMS3
-    );
+    // kissPinAssignments motor_pinAssignments(
+    //      7,  // pinDir
+    //      8,  // pinStep
+    //     12,  // pinEnable
+    //     11,  // pinMS1
+    //     10,  // pinMS2
+    //      9   // pinMS3
+    // );
 
     // kissMicrostepConfig for TI DRV8825
     // http://www.ti.com/product/drv8825?qgpn=drv8825
@@ -83,22 +83,75 @@ namespace MotorControl {
     //     1     0     1     32   microsteps/step
     //     1     1     0     32   microsteps/step
     //     1     1     1     32   microsteps/step
-    kissMicrostepConfig motor_microstepConfig(
-        MICROSTEP_32,
-        B01010101,  // MS1Config
-        B00110011,  // MS2Config
-        B00001111   // MS3Config
-    );
+    // kissMicrostepConfig motor_microstepConfig(
+    //     MICROSTEP_32,
+    //     B01010101,  // MS1Config
+    //     B00110011,  // MS2Config
+    //     B00001111   // MS3Config
+    // );
+    // const uint8_t motor_max_microsteps_factor = 32;
 
     // instantiate the kissStepper
-    kissStepper myStepperMotor(
+    // kissStepper myStepperMotor(
+    //     motor_pinAssignments,
+    //     motor_microstepConfig
+    // );
+
+
+    // Pins for Watterott SilentStepStick and Genuino micro on breadboard
+    // debug full setup
+    kissPinAssignments motor_pinAssignments(
+         7,  // pinDir
+         8,  // pinStep
+        12  // pinEnable
+        // 11,  // pinMS1
+        // 10,  // pinMS2
+        //  9   // pinMS3
+    );
+
+    // kissMicrostepConfig for Trinamic TMC2100
+    // http://www.trinamic.com/products/integrated-circuits/stepper-power-driver/tmc2100
+    // 3.1 CFG Pin Configuration (Page 9)
+    // Table    1.    Stepping    Format
+    //     CFG2 CFG1 μSTEP INTERPOLATION    MODE            kiss Mode
+    //     0    0     1    N                spreadCycle     FULL_STEP
+    //     0    1     2    N                spreadCycle     HALF_STEP
+    //     1    Z     2    Y, 256 μsteps    spreadCycle     -
+    //     1    0     4    N                spreadCycle     MICROSTEP_4
+    //     1    1    16    N                spreadCycle     MICROSTEP_16
+    //     1    Z     4    Y, 256 μsteps    spreadCycle     -
+    //     Z    0    16    Y, 256 μsteps    spreadCycle     -
+    //     Z    1     4    Y, 256 μsteps    stealthChop     -
+    //     Z    Z    16    Y, 256 μsteps    stealthChop     -
+    // Mapping to kissMicrostepConfig:
+    // mode         F  H  μ  μ  μ  μ  μ  μ
+    //              U  A  S  S  S  S  S  S
+    //              L  L  t  t  t  t  t  t
+    //              L  F  e  e  e  e  e  e
+    //              S  S  p  p  p  p  p  p
+    //              T  T                 1
+    //              E  E        1  3  6  2
+    //              P  P  4  8  6  2  4  8
+    // MS1Config    0  1  0  0  1  0  0  0
+    // MS2Config    0  0  1  0  1  0  0  0
+    // MS3Config    0  0  0  0  0  0  0  0
+
+    kissMicrostepConfig motor_microstepConfig(
+        MICROSTEP_16,
+        B01001000,  // MS1Config
+        B00101000,  // MS2Config
+        B00000000   // MS3Config
+    );
+    const uint8_t motor_max_microsteps_factor = 16;
+
+    // instantiate the kissStepper_TriState
+    kissStepper_TriState myStepperMotor(
         motor_pinAssignments,
         motor_microstepConfig
     );
 
     // number of full steps in one revolution of the motor
     const uint16_t motor_full_steps_revolution = 200;
-    const uint8_t motor_max_microsteps_factor = 32;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Limit Switchs
@@ -146,7 +199,7 @@ namespace MotorControl {
     // Stepper Manager
 
     // maximal amount of time (milliseconds) motor is allowed to continusly run
-    const uint16_t motor_move_timeout = 8000;
+    const uint16_t motor_move_timeout = 10000;
 
     // set limit to what calibration will drive as min and max values:
     const int8_t calibration_limit_turns = 3;

@@ -34,6 +34,30 @@
 #include <kissStepper.h>
 #include <slight_ButtonInput.h>
 
+
+class kissStepper_TriState: public kissStepper {
+public:
+    kissStepper_TriState(
+        kissPinAssignments pinAssignments,
+        kissMicrostepConfig microstepConfig
+    ) :
+        kissStepper(
+            pinAssignments,
+            microstepConfig
+        )
+    {}
+
+    void enable(void);
+    void useStandby(bool);
+    bool isUseStandby(void);
+
+protected:
+    static const uint8_t PINVAL_STANDBY = LOW;
+    bool use_standby;
+
+}; // kissStepper_TriState
+
+
 class slight_StepperManager {
 public:
 
@@ -43,7 +67,7 @@ public:
     // slight_StepperManager();
 
     // slight_StepperManager(
-    //     kissStepper &motor_ref,
+    //     kissStepper_TriState &motor_ref,
     //     slight_ButtonInput &LimitSwitch_forward_ref,
     //     slight_ButtonInput &LimitSwitch_reverse_ref,
     //     const uint16_t motor_move_timeout_new,
@@ -51,7 +75,7 @@ public:
     // );
 
     slight_StepperManager(
-        kissStepper &motor_ref,
+        kissStepper_TriState &motor_ref,
         slight_ButtonInput &LimitSwitch_forward_ref,
         slight_ButtonInput &LimitSwitch_reverse_ref,
         const uint16_t motor_move_timeout_new,
@@ -132,7 +156,7 @@ public:
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // stepper motor
 
-    kissStepper &motor;
+    kissStepper_TriState &motor;
 
     int8_t motor_accel_state;
     int8_t motor_move_state;
@@ -165,7 +189,7 @@ public:
     void LimitSwitch_onEvent(slight_ButtonInput *pInstance, uint8_t event);
 
 
-private:
+protected:
 
     const uint16_t motor_move_timeout;
     const int32_t calibration_limit;
@@ -212,6 +236,6 @@ private:
     void system_state_calibrating_reverse_finished();
     void system_state_calibrating_finished();
 
-};  // end namespace slight_StepperManager
+};  // slight_StepperManager
 
 #endif  // SLIGHT_STEPPERMANAGER_H_

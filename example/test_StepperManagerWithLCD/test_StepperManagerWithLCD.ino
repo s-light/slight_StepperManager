@@ -11,6 +11,8 @@
             RGB backlight negative LCD 16x2 + extras - RGB on black
         motordriver:
             Pololu DRV8825 Stepper Motor Driver Carrier, High Current
+            or
+            Watterott SilentStepStick (Trinamic TMC2100)
 
     libraries used:
         ~ Keep it Simple Stepper (kissStepper)
@@ -321,9 +323,11 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             out.println();
             out.println(F("\t 'o': motor set mode"));
             out.println(F("\t 'O': motor get mode"));
-            out.println(F("\t 'e': motor enable 'e1'"));
+            out.println(F("\t 'e': motor enable  'e1'"));
             out.println(F("\t 'e': motor disable 'e0'"));
             out.println(F("\t 'E': motor isEnabled?"));
+            out.println(F("\t 'u': motor use standby 'u1'"));
+            out.println(F("\t 'U': motor use standby ?"));
             out.println();
             out.println(F("\t 'm': motor moveTo 'm100000'"));
             out.println(F("\t 'M': motor get target"));
@@ -436,16 +440,23 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
         } break;
         case 'e': {
             out.print(F("\t motor "));
-            bool enabled = atoi(&command[1]);
-            if(enabled) {
-                out.print(F("en"));
-                MoCon::myStepperMotor.enable();
-            } else {
-                out.print(F("dis"));
-                MoCon::myStepperMotor.disable();
-            }
-            out.print(F("abled. "));
-            out.print(enabled);
+            uint8_t enable = atoi(&command[1]);
+            switch(enable) {
+                case 0: {
+                    out.print(F("disabled"));
+                    MoCon::myStepperMotor.disable();
+                } break;
+                case 1: {
+                    out.print(F("enabled"));
+                    MoCon::myStepperMotor.enable();
+                } break;
+                default: {
+                    out.print(F("????"));
+                }
+            } //end switch
+            out.print(F(". "));
+
+            out.print(enable);
             out.println();
         } break;
         case 'E': {
@@ -459,6 +470,44 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
             }
             out.print(F("abled. "));
             out.print(isEnabled);
+            out.println();
+        } break;
+        case 'u': {
+            out.print(F("\t motor use standby "));
+            uint8_t standby = atoi(&command[1]);
+            switch(standby) {
+                case 1: {
+                    out.print(F("true"));
+                    MoCon::myStepperMotor.useStandby(true);
+                } break;
+                case 0: {
+                    out.print(F("false"));
+                    MoCon::myStepperMotor.useStandby(false);
+                } break;
+                default: {
+                    out.print(F("????"));
+                }
+            } //end switch
+            out.print(F(". "));
+            out.print(standby);
+            out.println();
+        } break;
+        case 'U': {
+            out.print(F("\t motor use standby: "));
+            uint8_t standby = MoCon::myStepperMotor.isUseStandby();
+            switch(standby) {
+                case 1: {
+                    out.print(F("true"));
+                } break;
+                case 0: {
+                    out.print(F("false"));
+                } break;
+                default: {
+                    out.print(F("????"));
+                }
+            } //end switch
+            out.print(F(". "));
+            out.print(standby);
             out.println();
         } break;
         //------------------------------------------

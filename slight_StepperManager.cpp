@@ -46,7 +46,7 @@
 // constructor
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 slight_StepperManager::slight_StepperManager(
-    kissStepper &motor_ref,
+    kissStepper_TriState &motor_ref,
     slight_ButtonInput &LimitSwitch_forward_ref,
     slight_ButtonInput &LimitSwitch_reverse_ref,
     const uint16_t motor_move_timeout_new = 5000,
@@ -216,10 +216,12 @@ void slight_StepperManager::motor_init(Print &out) {
     out.println(F("setup stepper motor:"));
     // init motor
     out.println(F("\t set:"));
-    out.println(F("\t     MICROSTEP_8"));
+    // out.println(F("\t     MICROSTEP_8"));
+    out.println(F("\t     MICROSTEP_16"));
     out.println(F("\t     max speed 200 steps/s"));
     out.println(F("\t     acceleration 200 steps/s^2"));
-    motor.begin(MICROSTEP_8, 200, 200);
+    // motor.begin(MICROSTEP_8, 200, 200);
+    motor.begin(MICROSTEP_16, 200, 200);
 
     out.println(F("\t     limits:"));
     // int32_t limit = 12800;
@@ -912,5 +914,39 @@ void slight_StepperManager::system_event_callback() {
         callback_system_event();
     }
 }
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// kissStepper_TriState
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+void kissStepper_TriState::enable(void) {
+    if (pinEnable != pinNotSet) {
+        if (use_standby) {
+            pinMode(pinEnable, INPUT);
+            // digitalWrite(pinEnable, PINVAL_STANDBY);
+        } else {
+            pinMode(pinEnable, OUTPUT);
+            digitalWrite(pinEnable, PINVAL_ENABLED);
+        }
+    }
+    enabled = true;
+}
+
+void kissStepper_TriState::useStandby(bool use_standby_new) {
+    if (use_standby_new != use_standby) {
+        use_standby = use_standby_new;
+        if (enabled) {
+            // enable so that pin state will be set to new configuration
+            enable();
+        }
+    }
+}
+
+bool kissStepper_TriState::isUseStandby(void) {
+    return use_standby;
+}
+
+
 
 // };  // namespace slight_StepperManager
