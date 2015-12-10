@@ -921,7 +921,7 @@ void slight_StepperManager::system_event_callback() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void kissStepper_TriState::enable(void) {
-    Serial.println(F("TriState-enable."));
+    // Serial.println(F("  TriState-enable.  "));
     if (pinEnable != pinNotSet) {
         if (use_standby) {
             pinMode(pinEnable, INPUT);
