@@ -84,6 +84,9 @@
 #include <slight_StepperManager_States.h>
 typedef slight_StepperManager_States StM_States;
 // using StM_States = slight_StepperManager_States;
+#include <slight_StepperManager_TWI.h>
+typedef slight_StepperManager_TWI StM_TWI;
+// using StM_TWI = slight_StepperManager_TWI;
 
 #include "MotorControl.h"
 // this includes the namespace 'MotorControl'
