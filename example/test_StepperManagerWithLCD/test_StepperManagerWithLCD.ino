@@ -87,6 +87,10 @@
 
 #include <kissStepper.h>
 #include <slight_StepperManager.h>
+#include <slight_StepperManager_States.h>
+typedef slight_StepperManager_States StM_States;
+// using StM_States = slight_StepperManager_States;
+
 
 #include "MotorControl.h"
 // this includes the namespace 'MotorControl'
@@ -1085,7 +1089,7 @@ void display_systemevent() {
     lcd.setCursor(0,1);
     if(
         MoCon::myStepperManager.system_state_get() ==
-        slight_StepperManager::SYSSTATE_error
+        StM_States::STATE_error
     ) {
         // print error
         MoCon::myStepperManager.print_error(lcd);
@@ -1102,7 +1106,7 @@ void display_systemevent() {
         // if calibration finished
         if(
             MoCon::myStepperManager.system_state_get() ==
-            slight_StepperManager::SYSSTATE_calibrating_finished
+            StM_States::STATE_calibrating_finished
         ) {
             // print limit values to serial
             Serial.print(F(" *forwardLimit: "));
