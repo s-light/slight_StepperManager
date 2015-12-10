@@ -81,6 +81,9 @@
 
 #include <kissStepper.h>
 #include <slight_StepperManager.h>
+#include <slight_StepperManager_States.h>
+typedef slight_StepperManager_States StM_States;
+// using StM_States = slight_StepperManager_States;
 
 #include "MotorControl.h"
 // this includes the namespace 'MotorControl'
@@ -707,57 +710,57 @@ void menu_switcher(slight_DebugMenu *pInstance) {
 void print_systemevent() {
     Serial.print(F("system_state: "));
 
-    slight_StepperManager::sysstate_t system_state =
+    StM_States::sysstate_t system_state =
         MoCon::myStepperManager.system_state_get();
 
     // led info:
     switch (system_state) {
-        case slight_StepperManager::SYSSTATE_notvalid: {
+        case StM_States::STATE_notvalid: {
             // nothing to do.
         } break;
-        case slight_StepperManager::SYSSTATE_dirty: {
+        case StM_States::STATE_dirty: {
             digitalWrite(led_error_pin, led_on);
             digitalWrite(led_moving_pin, led_off);
         } break;
-        case slight_StepperManager::SYSSTATE_error: {
+        case StM_States::STATE_error: {
             digitalWrite(led_error_pin, led_on);
             digitalWrite(led_moving_pin, led_off);
         } break;
-        case slight_StepperManager::SYSSTATE_standby: {
+        case StM_States::STATE_standby: {
             // nothing to do.
         } break;
-        case slight_StepperManager::SYSSTATE_hold_forward:
-        case slight_StepperManager::SYSSTATE_hold_reverse: {
+        case StM_States::STATE_hold_forward:
+        case StM_States::STATE_hold_reverse: {
             digitalWrite(led_moving_pin, led_off);
         } break;
-        case slight_StepperManager::SYSSTATE_moving_forward:
-        case slight_StepperManager::SYSSTATE_moving_reverse: {
+        case StM_States::STATE_moving_forward:
+        case StM_States::STATE_moving_reverse: {
             digitalWrite(led_moving_pin, led_on);
         } break;
         // calibrating
-        case slight_StepperManager::SYSSTATE_calibrating_start: {
+        case StM_States::STATE_calibrating_start: {
             // nothing to do
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_check_next:
-        case slight_StepperManager::SYSSTATE_calibrating_forward_start: {
+        case StM_States::STATE_calibrating_check_next:
+        case StM_States::STATE_calibrating_forward_start: {
             // nothing to do
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_forward: {
+        case StM_States::STATE_calibrating_forward: {
             digitalWrite(led_moving_pin, led_on);
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_forward_finished: {
+        case StM_States::STATE_calibrating_forward_finished: {
             digitalWrite(led_moving_pin, led_off);
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_reverse_start: {
+        case StM_States::STATE_calibrating_reverse_start: {
             // nothing to do
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_reverse: {
+        case StM_States::STATE_calibrating_reverse: {
             digitalWrite(led_moving_pin, led_on);
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_reverse_finished: {
+        case StM_States::STATE_calibrating_reverse_finished: {
             digitalWrite(led_moving_pin, led_off);
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_finished: {
+        case StM_States::STATE_calibrating_finished: {
             digitalWrite(led_moving_pin, led_off);
             digitalWrite(led_error_pin, led_off);
         } break;
@@ -767,7 +770,7 @@ void print_systemevent() {
     MoCon::myStepperManager.print_state(Serial);
     Serial.println();
     switch (system_state) {
-        case slight_StepperManager::SYSSTATE_error: {
+        case StM_States::STATE_error: {
             // print error
             Serial.print(F("error: "));
             // MoCon::myStepperManager.print_error(
@@ -777,7 +780,7 @@ void print_systemevent() {
             MoCon::myStepperManager.print_error(Serial);
             Serial.println();
         } break;
-        case slight_StepperManager::SYSSTATE_calibrating_finished: {
+        case StM_States::STATE_calibrating_finished: {
             // print limit values to serial
             Serial.print(F(" *forwardLimit: "));
             Serial.print(MoCon::myStepperManager.motor.forwardLimit);

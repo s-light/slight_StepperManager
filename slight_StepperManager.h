@@ -34,6 +34,9 @@
 #include <kissStepper.h>
 #include <slight_ButtonInput.h>
 
+#include <slight_StepperManager_States.h>
+typedef slight_StepperManager_States StM_States;
+// using StM_States = slight_StepperManager_States;
 
 class kissStepper_TriState: public kissStepper {
 public:
@@ -113,45 +116,45 @@ public:
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // system state
 
-    enum error_t {  // c
-        ERROR_none,
-        ERROR_timeout,
-        ERROR_limitswitch_wrong_dir,
-        ERROR_limitswitchs,
-        ERROR_motorstart,
-        ERROR_motorstop,
-        ERROR_calibrating,
-        ERROR_mechanics_moved,
-        ERROR_emergencystop,
-    };
-    // error_t error_type; now private
-    error_t error_type_get();
-    static void print_error(Print&, error_t);
+    // enum StM_States::error_t {  // c
+    //     ERROR_none,
+    //     ERROR_timeout,
+    //     ERROR_limitswitch_wrong_dir,
+    //     ERROR_limitswitchs,
+    //     ERROR_motorstart,
+    //     ERROR_motorstop,
+    //     ERROR_calibrating,
+    //     ERROR_mechanics_moved,
+    //     ERROR_emergencystop,
+    // };
+    // StM_States::error_t error_type; now private
+    StM_States::error_t error_type_get();
+    // static void print_error(Print&, StM_States::error_t);
     void print_error(Print&);
 
     // enum class sysstate_t : uint8_t {      // c++ typesafe; arduino > 1.6.
-    enum sysstate_t {  // c
-        SYSSTATE_notvalid,
-        SYSSTATE_standby,
-        SYSSTATE_hold_forward,
-        SYSSTATE_hold_reverse,
-        SYSSTATE_moving_forward,
-        SYSSTATE_moving_reverse,
-        SYSSTATE_dirty,
-        SYSSTATE_error,
-        SYSSTATE_calibrating_start =    30,
-        SYSSTATE_calibrating_check_next,
-        SYSSTATE_calibrating_forward_start,
-        SYSSTATE_calibrating_forward,
-        SYSSTATE_calibrating_forward_finished,
-        SYSSTATE_calibrating_reverse_start,
-        SYSSTATE_calibrating_reverse,
-        SYSSTATE_calibrating_reverse_finished,
-        SYSSTATE_calibrating_finished,
-    };
+    // enum sysstate_t {  // c
+    //     STATE_notvalid,
+    //     STATE_standby,
+    //     STATE_hold_forward,
+    //     STATE_hold_reverse,
+    //     STATE_moving_forward,
+    //     STATE_moving_reverse,
+    //     STATE_dirty,
+    //     STATE_error,
+    //     STATE_calibrating_start =    30,
+    //     STATE_calibrating_check_next,
+    //     STATE_calibrating_forward_start,
+    //     STATE_calibrating_forward,
+    //     STATE_calibrating_forward_finished,
+    //     STATE_calibrating_reverse_start,
+    //     STATE_calibrating_reverse,
+    //     STATE_calibrating_reverse_finished,
+    //     STATE_calibrating_finished,
+    // };
     // sysstate_t system_state; now private
-    sysstate_t system_state_get();
-    static void print_state(Print&, sysstate_t);
+    StM_States::sysstate_t system_state_get();
+    // static void print_state(Print&, StM_States::sysstate_t);
     void print_state(Print&);
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,7 +166,7 @@ public:
     int8_t motor_move_state;
     int8_t motor_isenabled;
 
-    void motor_print_mode(Print &out, uint8_t mode);
+    static void motor_print_mode(Print &out, uint8_t mode);
     bool motor_move_forward();
     bool motor_move_reverse();
     bool motor_move_forward_raw();
@@ -205,9 +208,9 @@ protected:
 
     uint32_t motor_move_started_timestamp;
 
-    error_t error_type;
-    sysstate_t system_state;
-    sysstate_t system_state_last;
+    StM_States::error_t error_type;
+    StM_States::sysstate_t system_state;
+    StM_States::sysstate_t system_state_last;
 
     callback_t callback_move_event;
     callback_t callback_accelleration_event;
