@@ -45,6 +45,12 @@
 #include <slight_StepperManager.h>
 #include <slight_ButtonInput.h>
 
+#include <slight_StepperManager_TWI.h>
+typedef slight_StepperManager_TWI StM_TWI;
+// using StM_TWI = slight_StepperManager_TWI;
+#include <slight_StepperManager_TWI_Controller.h>
+typedef slight_StepperManager_TWI_Controller StM_TWI_Con;
+// using StM_TWI_Con = slight_StepperManager_TWI_Controller;
 
 namespace MotorControl {
 
@@ -218,6 +224,21 @@ namespace MotorControl {
     );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// StM_TWI_Con
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    const uint8_t TWI_address = 42;
+    const uint8_t TWI_address_master = 41;
+
+    StM_TWI_Con myStM_TWI_Con(
+        myStepperManager,
+        TWI_address,
+        TWI_address_master
+    );
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // impementation
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -262,11 +283,16 @@ namespace MotorControl {
         myStepperManager.init(out);
         myStepperManager.motor.setDriveMode(MICROSTEP_16);
         myStepperManager.motor.useStandby(true);
+
+        myStM_TWI_Con.begin(out);
+        out.println(F("\t activate myStM_TWI_Con instance for TWI events."));
+        StM_TWI_Con::activate(&myStM_TWI_Con);
     }
 
     void update() {
         LimitSwitchs_update();
         myStepperManager.update();
+        myStM_TWI_Con.update();
     }
 
 

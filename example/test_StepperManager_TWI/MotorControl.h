@@ -88,10 +88,8 @@
 #include <slight_StepperManager.h>
 // #include <slight_ButtonInput.h>
 
-// http://www.cplusplus.com/forum/articles/10627/
-// forward declared dependencies
-class slight_FaderLin;
-class slight_ButtonInput;
+#include <slight_StepperManager_TWI_Controller.h>
+typedef slight_StepperManager_TWI_Controller StM_TWI_Con;
 
 // class MotorControl {
 namespace MotorControl {
@@ -108,6 +106,7 @@ namespace MotorControl {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     extern slight_StepperManager myStepperManager;
+    extern slight_StepperManager_TWI_Controller myStM_TWI_Con;
     extern kissStepper_TriState myStepperMotor;
 };
 

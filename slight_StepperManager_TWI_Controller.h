@@ -28,47 +28,54 @@
     SOFTWARE.
 ******************************************************************************/
 
-#ifndef SLIGHT_STEPPERMANAGER_TWI_H_
-#define SLIGHT_STEPPERMANAGER_TWI_H_
+#ifndef SLIGHT_STEPPERMANAGER_TWI_CONTROLLER_H_
+#define SLIGHT_STEPPERMANAGER_TWI_CONTROLLER_H_
 
+#include "slight_StepperManager_TWI.h"
+typedef slight_StepperManager_TWI StM_TWI;
+// using StM_TWI = slight_StepperManager_TWI;
 
-class slight_StepperManager_TWI {
+#include "slight_StepperManager.h"
+
+class slight_StepperManager_TWI_Controller {
 public:
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // slight_StepperManager
 
-    slight_StepperManager_TWI();
+    slight_StepperManager_TWI_Controller(
+        const slight_StepperManager &myStManager_new,
+        const uint8_t TWI_address_new,
+        const uint8_t TWI_address_master_new
+    );
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // names and definitions
 
-    enum twi_state_t {
-        TWI_STATE_success = 0,
-        TWI_STATE_data_to_long = 1,
-        TWI_STATE_rec_NACK_on_address = 2,
-        TWI_STATE_rec_NACK_on_data = 3,
-        TWI_STATE_other_error = 4,
-        TWI_STATE_undefined = 99,
-    };
-    static void twi_state_print(Print &out, twi_state_t state);
+    void begin(Print &);
+    void update();
 
-    // enum class sysstate_t : uint8_t {      // c++ typesafe; arduino > 1.6.
-    enum register_name_t {  // c
-        REG_general_state,  // R/W contains interrupt flag
-        REG_system_state,  // R system_state
-        REG_error_type,  // R error_type
-        REG_action_calibrate,  // W starts calibration
-        REG_action_move_forward,  // W starts move forward
-        REG_action_move_reverse,  // W starts move reverse
-        REG_action_emergencystop,  // W starts emergencystop
-        REG_setting_move_speed,  // R/W 2Byte
-        REG_setting_move_acceleration,  // R/W 2Byte
-        REG_setting_calibration_speed,  // R/W 2Byte
-        REG_setting_calibration_acceleration,  // R/W 2Byte
-    };
-    static void register_name_print(Print &out, register_name_t register_name);
+    // void activate();
+    static void activate(slight_StepperManager_TWI_Controller *controller);
 
-};  // slight_StepperManager_TWI
+    // void check_for_interrupt();
 
-#endif  // SLIGHT_STEPPERMANAGER_TWI_H_
+    // void check_for_interrupt();
+
+protected:
+
+    static slight_StepperManager_TWI_Controller * active_controller;
+    // static slight_StepperManager_TWI_Controller * test;
+
+    const slight_StepperManager &myStManager;
+
+    StM_TWI::register_name_t register_current;
+    const uint8_t TWI_address;
+    const uint8_t TWI_address_master;
+
+    static void TWI_request_event();
+    static void TWI_receive_event(int received_size);
+
+};  // slight_StepperManager_TWI_Controller
+
+#endif  // SLIGHT_STEPPERMANAGER_TWI_CONTROLLER_H_

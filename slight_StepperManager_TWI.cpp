@@ -38,17 +38,20 @@
 #endif
 
 #include "slight_StepperManager_TWI.h"
+typedef slight_StepperManager_TWI StM_TWI;
+// using StM_TWI = slight_StepperManager_TWI;
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // constructor
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-slight_StepperManager_TWI::slight_StepperManager_TWI() {
+StM_TWI::slight_StepperManager_TWI() {
     // Nothing to do here...
     // only used as static class..
 }
 
 
-void slight_StepperManager_TWI::twi_state_print(Print &out, twi_state_t state) {
+void StM_TWI::twi_state_print(Print &out, twi_state_t state) {
     switch (state) {
         case TWI_STATE_success: {
             out.print(F("success"));
@@ -68,6 +71,41 @@ void slight_StepperManager_TWI::twi_state_print(Print &out, twi_state_t state) {
         default: {
             out.print(F("??"));
         }
+    }
+}
+
+void StM_TWI::register_name_print(Print &out, register_name_t register_name) {
+    switch (register_name) {
+        case REG_general_state: {
+            out.print(F("general state"));
+        } break;
+        case REG_system_state: {
+            out.print(F("system state"));
+        } break;
+        case REG_error_type: {
+            out.print(F("error type"));
+        } break;
+        case REG_action_move_forward: {
+            out.print(F("action move forward"));
+        } break;
+        case REG_action_move_reverse: {
+            out.print(F("action move reverse"));
+        } break;
+        case REG_action_emergencystop: {
+            out.print(F("action emergencystop"));
+        } break;
+        case REG_setting_move_speed: {
+            out.print(F("setting move speed"));
+        } break;
+        case REG_setting_move_acceleration: {
+            out.print(F("setting move acceleration"));
+        } break;
+        case REG_setting_calibration_speed: {
+            out.print(F("setting calibration speed"));
+        } break;
+        case REG_setting_calibration_acceleration: {
+            out.print(F("setting calibration acceleration"));
+        } break;
     }
 }
 

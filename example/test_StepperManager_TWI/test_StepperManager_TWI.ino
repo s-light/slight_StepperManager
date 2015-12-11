@@ -84,9 +84,14 @@
 #include <slight_StepperManager_States.h>
 typedef slight_StepperManager_States StM_States;
 // using StM_States = slight_StepperManager_States;
+
 #include <slight_StepperManager_TWI.h>
 typedef slight_StepperManager_TWI StM_TWI;
 // using StM_TWI = slight_StepperManager_TWI;
+#include <Wire.h>
+#include <slight_StepperManager_TWI_Controller.h>
+typedef slight_StepperManager_TWI_Controller StM_TWI_Con;
+// using StM_TWI_Con = slight_StepperManager_TWI_Controller;
 
 #include "MotorControl.h"
 // this includes the namespace 'MotorControl'
@@ -800,7 +805,7 @@ void print_systemevent() {
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// other things..
+// TWI handling
 
 
 
