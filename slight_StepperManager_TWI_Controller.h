@@ -44,7 +44,7 @@ public:
     // slight_StepperManager
 
     slight_StepperManager_TWI_Controller(
-        const slight_StepperManager &myStManager_new,
+        slight_StepperManager &myStManager_new,
         const uint8_t TWI_address_new,
         const uint8_t TWI_address_master_new
     );
@@ -67,14 +67,28 @@ protected:
     static slight_StepperManager_TWI_Controller * active_controller;
     // static slight_StepperManager_TWI_Controller * test;
 
-    const slight_StepperManager &myStManager;
+    slight_StepperManager &myStManager;
 
     StM_TWI::register_name_t register_current;
+
+    volatile StM_TWI::register_name_t received_register;
+    static const uint8_t received_data_size_max = 32;
+    volatile uint8_t received_data[received_data_size_max];
+    volatile uint8_t received_data_size;
+    volatile bool received_flag;
+
     const uint8_t TWI_address;
     const uint8_t TWI_address_master;
 
     static void TWI_request_event();
-    static void TWI_receive_event(int received_size);
+    static void TWI_receive_event(int received_bytes);
+
+    void handle_received();
+    void handle_action(StM_TWI::register_name_t action);
+    void handle_register_new_data(
+        StM_TWI::register_name_t register_name,
+        volatile uint8_t *data
+    );
 
 };  // slight_StepperManager_TWI_Controller
 

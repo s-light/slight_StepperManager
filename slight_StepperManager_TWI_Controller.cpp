@@ -46,13 +46,14 @@ typedef slight_StepperManager_TWI StM_TWI;
 typedef slight_StepperManager_TWI_Controller StM_TWI_Con;
 // using StM_TWI_Con = slight_StepperManager_TWI_Controller;
 
+#include "TWI_Anything.h"
 #include "slight_StepperManager.h"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // constructor
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StM_TWI_Con::slight_StepperManager_TWI_Controller(
-    const slight_StepperManager &myStManager_new,
+    slight_StepperManager &myStManager_new,
     const uint8_t TWI_address_new,
     const uint8_t TWI_address_master_new
 ) :
@@ -158,43 +159,127 @@ void StM_TWI_Con::TWI_request_event() {
 // Master has send some information.
 // so we react on this.
 // ISR!!!!
-void StM_TWI_Con::TWI_receive_event(int received_size) {
+void StM_TWI_Con::TWI_receive_event(int rec_bytes) {
     if (active_controller != NULL) {
-        // read information
-        // read register
-        StM_TWI::register_name_t reg;
-        reg = (StM_TWI::register_name_t)Wire.read();
+        uint8_t rec_size = rec_bytes;
+        if (rec_bytes > 0) {
+            // read information
+            // read register
+            active_controller->received_register =
+                (StM_TWI::register_name_t)Wire.read();
+            // memory received data bytes
+            active_controller->received_data_size = rec_size -1;
+            if (rec_size > 1) {
+                // copy data to instance data buffer
+                for (size_t index = 1; index < rec_size; index++) {
+                    active_controller->received_data[index] = Wire.read();
+                }
+            }
+            active_controller->received_flag = true;
+        }
+    }  // if active_controller
+}
+
+void StM_TWI_Con::handle_received() {
+    if (received_flag) {
+        // handle received things:
         // decide what to do:
-        switch (active_controller->register_current) {
+        switch (received_register) {
+            // ~~~~~~~~~~~~~~~~~~~~~
             // states - read only
             case StM_TWI::REG_general_state:
             case StM_TWI::REG_system_state:
             case StM_TWI::REG_error_type: {
                 // just set register pointer to new value (prepare for read)
-                active_controller->register_current = reg;
+                register_current = received_register;
             } break;
+            // ~~~~~~~~~~~~~~~~~~~~~
             // actions - write only
             case StM_TWI::REG_action_calibrate:
             case StM_TWI::REG_action_move_forward:
             case StM_TWI::REG_action_move_reverse:
             case StM_TWI::REG_action_emergencystop: {
-                // prepare action so next 'update' can handle this.
-
+                // do action
+                handle_action(received_register);
             } break;
+            // ~~~~~~~~~~~~~~~~~~~~~
             // settings - read & write
             case StM_TWI::REG_setting_move_speed:
             case StM_TWI::REG_setting_move_acceleration:
             case StM_TWI::REG_setting_calibration_speed:
             case StM_TWI::REG_setting_calibration_acceleration: {
-                // set register pointer to new value.
-                active_controller->register_current = reg;
-                if (received_size > 1) {
+                // just set register pointer to new value (prepare for read)
+                register_current = received_register;
+                // check if write data is there
+                if (received_data_size > 0) {
                     // set register to new value.
-                    //
+                    handle_register_new_data(received_register, received_data);
                 }
             } break;
         }  // switch register_name
-    }  // if active_controller
+
+        // reset things:
+        received_flag = false;
+        received_data_size = 0;
+        // memset(received_data, 0, received_data_size_max);
+        // memset does not work because of volatile..
+        for (size_t index = 0; index < received_data_size_max; index++) {
+            received_data[index] = 0;
+        }
+    }
+}
+
+void StM_TWI_Con::handle_action(StM_TWI::register_name_t action) {
+    switch (action) {
+        case StM_TWI::REG_action_calibrate: {
+            myStManager.calibration_start();
+        } break;
+        case StM_TWI::REG_action_move_forward: {
+            myStManager.motor_move_forward();
+        } break;
+        case StM_TWI::REG_action_move_reverse: {
+            myStManager.motor_move_reverse();
+        } break;
+        case StM_TWI::REG_action_emergencystop: {
+            myStManager.system_emergencystop();
+        } break;
+        default: {
+            // should never be the case ;-)
+            // just is here to prevent compiler warnings about unhandled cases
+        } break;
+    }  // switch action
+}
+
+void StM_TWI_Con::handle_register_new_data(
+    StM_TWI::register_name_t register_name,
+    volatile uint8_t *data
+) {
+    switch (register_name) {
+        case StM_TWI::REG_setting_move_speed: {
+            uint16_t value = 0;
+            Buffer_readAnything(value, data);
+            myStManager.move_speed_set(value);
+        } break;
+        case StM_TWI::REG_setting_move_acceleration: {
+            uint16_t value = 0;
+            Buffer_readAnything(value, data);
+            myStManager.move_acceleration_set(value);
+        } break;
+        case StM_TWI::REG_setting_calibration_speed: {
+            uint16_t value = 0;
+            Buffer_readAnything(value, data);
+            myStManager.calibration_speed_set(value);
+        } break;
+        case StM_TWI::REG_setting_calibration_acceleration: {
+            uint16_t value = 0;
+            Buffer_readAnything(value, data);
+            myStManager.calibration_acceleration_set(value);
+        } break;
+        default: {
+            // should never be the case ;-)
+            // just is here to prevent compiler warnings about unhandled cases
+        } break;
+    }  // switch register_name
 }
 
 
