@@ -39,7 +39,30 @@ template <typename T> unsigned int I2C_writeAnything (const T& value) {
 
 template <typename T> unsigned int I2C_readAnything(T& value) {
     byte * p = (byte*) &value;
-    for (size_t i = 0; i < sizeof value; i++)
+    size_t i;
+    for (i = 0; i < sizeof value; i++)
           *p++ = Wire.read();
     return i;
 }  // end of I2C_readAnything
+
+template <typename T> unsigned int Buffer_readAnything(
+    T& value,
+    uint8_t *buffer
+) {
+    byte * p = (byte*) &value;
+    size_t i;
+    for (i = 0; i < sizeof value; i++)
+          *p++ = buffer[i];
+    return i;
+}  // end of Buffer_readAnything
+
+template <typename T> unsigned int Buffer_readAnything(
+    T& value,
+    volatile uint8_t *buffer
+) {
+    byte * p = (byte*) &value;
+    size_t i;
+    for (i = 0; i < sizeof value; i++)
+          *p++ = buffer[i];
+    return i;
+}  // end of Buffer_readAnything
