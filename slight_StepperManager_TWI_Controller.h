@@ -70,6 +70,7 @@ protected:
     slight_StepperManager &myStManager;
 
     StM_TWI::register_name_t register_current;
+    StM_TWI::general_state_t register_general_state;
 
     volatile StM_TWI::register_name_t received_register;
     static const uint8_t received_data_size_max = 32;
@@ -82,6 +83,8 @@ protected:
 
     static void TWI_request_event();
     static void TWI_receive_event(int received_bytes);
+
+    void handle_request();
 
     void handle_received();
     void handle_action(StM_TWI::register_name_t action);

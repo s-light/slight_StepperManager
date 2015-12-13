@@ -9,7 +9,7 @@
 #include <Wire.h>
 
 // updated version - know works inside onRequest
-template <typename T> unsigned int I2C_writeAnything (const T& value) {
+template <typename T> unsigned int TWI_writeAnything (const T& value) {
   Wire.write((byte *) &value, sizeof (value));
   return sizeof (value);
 }  // end of I2C_writeAnything
@@ -37,7 +37,7 @@ template <typename T> unsigned int I2C_writeAnything (const T& value) {
 //     return i;
 // }  // end of I2C_singleWriteAnything
 
-template <typename T> unsigned int I2C_readAnything(T& value) {
+template <typename T> unsigned int TWI_readAnything(T& value) {
     byte * p = (byte*) &value;
     size_t i;
     for (i = 0; i < sizeof value; i++)

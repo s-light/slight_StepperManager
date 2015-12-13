@@ -115,46 +115,62 @@ void StM_TWI_Con::activate(slight_StepperManager_TWI_Controller *controller) {
 // ISR!!!!
 void StM_TWI_Con::TWI_request_event() {
     if (active_controller != NULL) {
-        switch (active_controller->register_current) {
-            // states
-            case StM_TWI::REG_general_state: {
-                // things to do
-            } break;
-            case StM_TWI::REG_system_state: {
-                // things to do
-            } break;
-            case StM_TWI::REG_error_type: {
-                // things to do
-            } break;
-            // actions
-            case StM_TWI::REG_action_calibrate: {
-                // things to do
-            } break;
-            case StM_TWI::REG_action_move_forward: {
-                // things to do
-            } break;
-            case StM_TWI::REG_action_move_reverse: {
-                // things to do
-            } break;
-            case StM_TWI::REG_action_emergencystop: {
-                // things to do
-            } break;
-            // settings
-            case StM_TWI::REG_setting_move_speed: {
-                // things to do
-            } break;
-            case StM_TWI::REG_setting_move_acceleration: {
-                // things to do
-            } break;
-            case StM_TWI::REG_setting_calibration_speed: {
-                // things to do
-            } break;
-            case StM_TWI::REG_setting_calibration_acceleration: {
-                // things to do
-            } break;
-        }  // switch register_name
+        active_controller->handle_request();
     }  // if active_controller
 }
+
+void StM_TWI_Con::handle_request() {
+    switch (register_current) {
+        // ~~~~~~~~~~~~~~~~~~~~~
+        // states
+        case StM_TWI::REG_general_state: {
+            TWI_writeAnything(
+                register_general_state
+            );
+        } break;
+        case StM_TWI::REG_system_state: {
+            TWI_writeAnything(
+                myStManager.system_state_get()
+            );
+        } break;
+        case StM_TWI::REG_error_type: {
+            TWI_writeAnything(
+                myStManager.error_type_get()
+            );
+        } break;
+        // ~~~~~~~~~~~~~~~~~~~~~
+        // actions
+        case StM_TWI::REG_action_calibrate:
+        case StM_TWI::REG_action_move_forward:
+        case StM_TWI::REG_action_move_reverse:
+        case StM_TWI::REG_action_emergencystop: {
+            // nothing to do.
+        } break;
+        // ~~~~~~~~~~~~~~~~~~~~~
+        // settings
+        case StM_TWI::REG_setting_move_speed: {
+            TWI_writeAnything(
+                myStManager.move_speed_get()
+            );
+        } break;
+        case StM_TWI::REG_setting_move_acceleration: {
+            TWI_writeAnything(
+                myStManager.move_acceleration_get()
+            );
+        } break;
+        case StM_TWI::REG_setting_calibration_speed: {
+            TWI_writeAnything(
+                myStManager.calibration_speed_get()
+            );
+        } break;
+        case StM_TWI::REG_setting_calibration_acceleration: {
+            TWI_writeAnything(
+                myStManager.calibration_acceleration_get()
+            );
+        } break;
+    }  // switch register_name
+}
+
 
 // Master has send some information.
 // so we react on this.
