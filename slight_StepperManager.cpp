@@ -925,42 +925,5 @@ void slight_StepperManager::system_event_callback() {
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// kissStepper_TriState
+// THE END
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-void kissStepper_TriState::enable(void) {
-    // Serial.println(F("  TriState-enable.  "));
-    if (pinEnable != pinNotSet) {
-        if (use_standby) {
-            pinMode(pinEnable, INPUT);
-            // digitalWrite(pinEnable, PINVAL_STANDBY);
-        } else {
-            pinMode(pinEnable, OUTPUT);
-            digitalWrite(pinEnable, PINVAL_ENABLED);
-        }
-    }
-    enabled = true;
-}
-
-void kissStepper_TriState::disable(void) {
-    pinMode(pinEnable, OUTPUT);
-    kissStepper::disable();
-}
-
-void kissStepper_TriState::useStandby(bool use_standby_new) {
-    if (use_standby_new != use_standby) {
-        use_standby = use_standby_new;
-        if (enabled) {
-            // enable so that pin state will be set to new configuration
-            enable();
-        }
-    }
-}
-
-bool kissStepper_TriState::isUseStandby(void) {
-    return use_standby;
-}
-
-
-
-// };  // namespace slight_StepperManager

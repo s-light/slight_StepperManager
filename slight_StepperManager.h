@@ -38,30 +38,6 @@
 typedef slight_StepperManager_States StM_States;
 // using StM_States = slight_StepperManager_States;
 
-class kissStepper_TriState: public kissStepper {
-public:
-    kissStepper_TriState(
-        kissPinAssignments pinAssignments,
-        kissMicrostepConfig microstepConfig
-    ) :
-        kissStepper(
-            pinAssignments,
-            microstepConfig
-        )
-    {}
-
-    void enable(void);
-    void disable(void);
-    void useStandby(bool);
-    bool isUseStandby(void);
-
-protected:
-    static const uint8_t PINVAL_STANDBY = LOW;
-    bool use_standby;
-
-}; // kissStepper_TriState
-
-
 class slight_StepperManager {
 public:
 
