@@ -32,6 +32,7 @@
 #define SLIGHT_STEPPERMANAGER_H_
 
 #include <kissStepper.h>
+#include <kissStepper_TriState.h>
 #include <slight_ButtonInput.h>
 
 #include <slight_StepperManager_States.h>

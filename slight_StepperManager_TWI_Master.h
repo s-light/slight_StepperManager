@@ -28,22 +28,25 @@
     SOFTWARE.
 ******************************************************************************/
 
-#ifndef SLIGHT_STEPPERMANAGER_TWI_CONTROLLER_H_
-#define SLIGHT_STEPPERMANAGER_TWI_CONTROLLER_H_
+#ifndef SLIGHT_STEPPERMANAGER_TWI_MASTER_H_
+#define SLIGHT_STEPPERMANAGER_TWI_MASTER_H_
+
+
+#include <slight_StepperManager_States.h>
+typedef slight_StepperManager_States StM_States;
+// using StM_States = slight_StepperManager_States;
 
 #include "slight_StepperManager_TWI.h"
 typedef slight_StepperManager_TWI StM_TWI;
 // using StM_TWI = slight_StepperManager_TWI;
 
-#include "slight_StepperManager.h"
 
-class slight_StepperManager_TWI_Controller {
+class slight_StepperManager_TWI_Master {
  public:
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // slight_StepperManager
 
-    slight_StepperManager_TWI_Controller(
-        slight_StepperManager &myStManager_new,
+    slight_StepperManager_TWI_Master(
         const uint8_t TWI_address_own_new,
         const uint8_t TWI_address_extern_new
     );
@@ -55,41 +58,30 @@ class slight_StepperManager_TWI_Controller {
     void update();
 
     // void activate();
-    static void activate(slight_StepperManager_TWI_Controller *instance);
-
-    // void check_for_interrupt();
-
-    // void check_for_interrupt();
+    static void activate(slight_StepperManager_TWI_Master *instance);
 
  protected:
-    static slight_StepperManager_TWI_Controller * active_instance;
+    // wrap
+    static slight_StepperManager_TWI_Master * active_instance;
 
-    slight_StepperManager &myStManager;
-
-    StM_TWI::register_name_t register_current;
-    uint8_t register_general_state;
-
-    volatile StM_TWI::register_name_t received_register;
-    static const uint8_t received_data_size_max = 32;
-    volatile uint8_t received_data[received_data_size_max];
-    volatile uint8_t received_data_size;
-    volatile bool received_flag;
-
+    // TWI things
     const uint8_t TWI_address_own;
     const uint8_t TWI_address_extern;
 
-    static void TWI_request_event();
+    volatile uint8_t received_general_state;
+    volatile StM_States::sysstate_t received_system_state;
+    volatile StM_States::error_t received_error_type;
+    volatile bool received_flag;
+
     static void TWI_receive_event(int received_bytes);
-
-    void handle_request();
-
     void handle_received();
-    void handle_action(StM_TWI::register_name_t action);
-    void handle_register_new_data(
-        StM_TWI::register_name_t register_name,
-        volatile uint8_t *data
-    );
 
-};  // slight_StepperManager_TWI_Controller
+    // local copy of states
+    uint8_t general_state;
+    StM_States::sysstate_t system_state;
+    StM_States::error_t error_type;
 
-#endif  // SLIGHT_STEPPERMANAGER_TWI_CONTROLLER_H_
+    // end
+};  // slight_StepperManager_TWI_Master
+
+#endif  // SLIGHT_STEPPERMANAGER_TWI_MASTER_H_

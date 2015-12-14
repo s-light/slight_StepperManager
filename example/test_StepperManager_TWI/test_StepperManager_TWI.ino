@@ -80,6 +80,8 @@
 #include <slight_ButtonInput.h>
 
 #include <kissStepper.h>
+#include <kissStepper_TriState.h>
+
 #include <slight_StepperManager.h>
 #include <slight_StepperManager_States.h>
 typedef slight_StepperManager_States StM_States;

@@ -54,12 +54,12 @@ typedef slight_StepperManager_TWI_Controller StM_TWI_Con;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StM_TWI_Con::slight_StepperManager_TWI_Controller(
     slight_StepperManager &myStManager_new,
-    const uint8_t TWI_address_new,
-    const uint8_t TWI_address_master_new
+    const uint8_t TWI_address_own_new,
+    const uint8_t TWI_address_extern_new
 ) :
     myStManager(myStManager_new),
-    TWI_address(TWI_address_new),
-    TWI_address_master(TWI_address_master_new)
+    TWI_address_own(TWI_address_own_new),
+    TWI_address_extern(TWI_address_extern_new)
 {
     // set some initial states:
     register_current = StM_TWI::REG_general_state;
@@ -67,7 +67,7 @@ StM_TWI_Con::slight_StepperManager_TWI_Controller(
 }
 
 // init pointer to null
-slight_StepperManager_TWI_Controller *StM_TWI_Con::active_controller = NULL;
+slight_StepperManager_TWI_Controller *StM_TWI_Con::active_instance = NULL;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // init & update
@@ -77,9 +77,9 @@ void StM_TWI_Con::begin(Print &out) {
     out.println(F("setup TWI:"));
 
     out.print(F("\t join bus as slave with address "));
-    out.print(TWI_address);
+    out.print(TWI_address_own);
     out.println();
-    Wire.begin(TWI_address);
+    Wire.begin(TWI_address_own);
 
     out.println(F("\t setup onRequest event handling."));
     Wire.onRequest(TWI_request_event);
@@ -102,8 +102,8 @@ void StM_TWI_Con::update() {
 
 // void StM_TWI_Con::activate() {
 void StM_TWI_Con::activate(slight_StepperManager_TWI_Controller *controller) {
-    // active_controller = &this;
-    StM_TWI_Con::active_controller = controller;
+    // active_instance = &this;
+    StM_TWI_Con::active_instance = controller;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,9 +114,9 @@ void StM_TWI_Con::activate(slight_StepperManager_TWI_Controller *controller) {
 // so we send hime something ;-)
 // ISR!!!!
 void StM_TWI_Con::TWI_request_event() {
-    if (active_controller != NULL) {
-        active_controller->handle_request();
-    }  // if active_controller
+    if (active_instance != NULL) {
+        active_instance->handle_request();
+    }  // if active_instance
 }
 
 void StM_TWI_Con::handle_request() {
@@ -176,24 +176,24 @@ void StM_TWI_Con::handle_request() {
 // so we react on this.
 // ISR!!!!
 void StM_TWI_Con::TWI_receive_event(int rec_bytes) {
-    if (active_controller != NULL) {
+    if (active_instance != NULL) {
         uint8_t rec_size = rec_bytes;
         if (rec_bytes > 0) {
             // read information
             // read register
-            active_controller->received_register =
+            active_instance->received_register =
                 (StM_TWI::register_name_t)Wire.read();
             // memory received data bytes
-            active_controller->received_data_size = rec_size -1;
+            active_instance->received_data_size = rec_size -1;
             if (rec_size > 1) {
                 // copy data to instance data buffer
                 for (size_t index = 1; index < rec_size; index++) {
-                    active_controller->received_data[index] = Wire.read();
+                    active_instance->received_data[index] = Wire.read();
                 }
             }
-            active_controller->received_flag = true;
+            active_instance->received_flag = true;
         }
-    }  // if active_controller
+    }  // if active_instance
 }
 
 void StM_TWI_Con::handle_received() {

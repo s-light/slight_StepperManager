@@ -84,6 +84,7 @@
 
 
 #include <kissStepper.h>
+#include <kissStepper_TriState.h>
 
 #include <slight_StepperManager.h>
 // #include <slight_ButtonInput.h>
