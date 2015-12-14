@@ -43,6 +43,13 @@ public:
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // names and definitions
 
+    enum general_state_mask_t {
+        GSTATE_interruppt = B00000001,
+        GSTATE_system_state_changed = B00000010,
+        GSTATE_error_type_changed = B00000100,
+        GSTATE_reserved1 = B00001000,
+    };
+
     enum twi_state_t {
         TWI_STATE_success = 0,
         TWI_STATE_data_to_long = 1,

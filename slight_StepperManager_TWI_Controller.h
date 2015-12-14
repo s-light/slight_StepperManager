@@ -70,7 +70,7 @@ protected:
     slight_StepperManager &myStManager;
 
     StM_TWI::register_name_t register_current;
-    StM_TWI::general_state_t register_general_state;
+    uint8_t register_general_state;
 
     volatile StM_TWI::register_name_t received_register;
     static const uint8_t received_data_size_max = 32;
