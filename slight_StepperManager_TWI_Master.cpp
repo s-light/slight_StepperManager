@@ -56,10 +56,10 @@ typedef slight_StepperManager_TWI_Master StM_TWI_Master;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StM_TWI_Master::slight_StepperManager_TWI_Master(
     const uint8_t TWI_address_own_new,
-    const uint8_t TWI_address_extern_new
+    const uint8_t TWI_address_target_new
 ) :
     TWI_address_own(TWI_address_own_new),
-    TWI_address_extern(TWI_address_extern_new)
+    TWI_address_target(TWI_address_target_new)
 {
     // set some initial states:
 }
@@ -134,11 +134,217 @@ void StM_TWI_Master::handle_onReceive_ISR(int rec_bytes) {
 void StM_TWI_Master::handle_received() {
     if (received_flag) {
         // handle received things:
-
+            // generate event...
         // reset things:
         received_flag = false;
     }
 }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// TWI setter / getter / actions
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+uint8_t StM_TWI_Master::general_state_read() {
+    return read_register_8bit(StM_TWI::REG_general_state);
+}
+
+StM_States::sysstate_t StM_TWI_Master::system_state_read() {
+    uint8_t temp;
+    temp = read_register_8bit(StM_TWI::REG_system_state);
+    return (StM_States::sysstate_t)temp;
+}
+
+StM_States::error_t StM_TWI_Master::error_type_read() {
+    uint8_t temp;
+    temp = read_register_8bit(StM_TWI::REG_error_type);
+    return (StM_States::error_t)temp;
+}
+
+
+void StM_TWI_Master::calibrate() {
+    write_register(StM_TWI::REG_action_calibrate);
+}
+
+void StM_TWI_Master::move_forward() {
+    write_register(StM_TWI::REG_action_move_forward);
+}
+
+void StM_TWI_Master::move_reverse() {
+    write_register(StM_TWI::REG_action_move_reverse);
+}
+
+void StM_TWI_Master::emergencystop() {
+    write_register(StM_TWI::REG_action_emergencystop);
+}
+
+
+uint16_t StM_TWI_Master::settings_move_speed_read() {
+    return read_register_16bit(StM_TWI::REG_setting_move_speed);
+}
+
+void StM_TWI_Master::settings_move_speed_write(uint16_t value) {
+    write_register_16bit(
+        StM_TWI::REG_setting_move_speed,
+        value
+    );
+}
+
+uint16_t StM_TWI_Master::settings_move_acceleration_read() {
+    return read_register_16bit(StM_TWI::REG_setting_move_acceleration);
+}
+
+void StM_TWI_Master::settings_move_acceleration_write(uint16_t value) {
+    write_register_16bit(
+        StM_TWI::REG_setting_move_acceleration,
+        value
+    );
+}
+
+uint16_t StM_TWI_Master::settings_calibration_speed_read() {
+    return read_register_16bit(StM_TWI::REG_setting_calibration_speed);
+}
+
+void StM_TWI_Master::settings_calibration_speed_write(uint16_t value) {
+    write_register_16bit(
+        StM_TWI::REG_setting_calibration_speed,
+        value
+    );
+}
+
+uint16_t StM_TWI_Master::settings_calibration_acceleration_read() {
+    return read_register_16bit(StM_TWI::REG_setting_calibration_acceleration);
+}
+
+void StM_TWI_Master::settings_calibration_acceleration_write(uint16_t value) {
+    write_register_16bit(
+        StM_TWI::REG_setting_calibration_acceleration,
+        value
+    );
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// basic read write operations
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+void StM_TWI_Master::write_register(uint8_t reg_name) {
+    if (ready) {
+        twi_state = StM_TWI::TWI_STATE_undefined;
+        // set register
+        Wire.beginTransmission(TWI_address_target);
+        Wire.write(reg_name);
+        twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
+        if (twi_state == StM_TWI::TWI_STATE_success) {
+            // all fine.
+        } else {
+            // print_transmission_state(Serial, twi_state);
+        }
+    }
+}
+
+void StM_TWI_Master::write_register(
+    StM_TWI::register_name_t reg_name
+) {
+    write_register((uint8_t)reg_name);
+}
+
+
+void StM_TWI_Master::write_register_8bit(uint8_t reg_name, uint8_t value) {
+    if (ready) {
+        twi_state = StM_TWI::TWI_STATE_undefined;
+        // set register
+        Wire.beginTransmission(TWI_address_target);
+        Wire.write(reg_name);
+        Wire.write(value);
+        twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
+        if (twi_state == StM_TWI::TWI_STATE_success) {
+            // all fine.
+        } else {
+            // print_transmission_state(Serial, twi_state);
+        }
+    }
+}
+
+void StM_TWI_Master::write_register_8bit(
+    StM_TWI::register_name_t reg_name,
+    uint8_t value
+) {
+    write_register_8bit((uint8_t)reg_name, value);
+}
+
+uint8_t StM_TWI_Master::read_register_8bit(uint8_t reg_name) {
+    uint8_t result_value = 0;
+    if (ready) {
+        twi_state = StM_TWI::TWI_STATE_undefined;
+        // set register
+        Wire.beginTransmission(TWI_address_target);
+        Wire.write(reg_name);
+        twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
+        if (twi_state == StM_TWI::TWI_STATE_success) {
+            // read data
+            Wire.requestFrom(TWI_address_target, sizeof(uint8_t));
+            result_value = Wire.read();
+        } else {
+            // print_transmission_state(Serial, twi_state);
+        }
+    }
+    return result_value;
+}
+
+uint8_t StM_TWI_Master::read_register_8bit(
+    StM_TWI::register_name_t reg_name
+) {
+    return read_register_8bit((uint8_t)reg_name);
+}
+
+
+void StM_TWI_Master::write_register_16bit(uint8_t reg_name, uint16_t value) {
+    if (ready) {
+        twi_state = StM_TWI::TWI_STATE_undefined;
+        // set register
+        Wire.beginTransmission(TWI_address_target);
+        Wire.write(reg_name);
+        TWI_writeAnything(value);
+        twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
+        if (twi_state == StM_TWI::TWI_STATE_success) {
+            // all fine.
+        } else {
+            // print_transmission_state(Serial, twi_state);
+        }
+    }
+}
+
+void StM_TWI_Master::write_register_16bit(
+    StM_TWI::register_name_t reg_name,
+    uint16_t value
+) {
+    write_register_16bit((uint8_t)reg_name, value);
+}
+
+uint16_t StM_TWI_Master::read_register_16bit(uint8_t reg_name) {
+    uint16_t result_value = 0;
+    if (ready) {
+        twi_state = StM_TWI::TWI_STATE_undefined;
+        // set register
+        Wire.beginTransmission(TWI_address_target);
+        Wire.write(reg_name);
+        twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
+        if (twi_state == StM_TWI::TWI_STATE_success) {
+            // read data
+            Wire.requestFrom(TWI_address_target, sizeof(uint16_t));
+            TWI_readAnything(result_value);
+        } else {
+            // print_transmission_state(Serial, twi_state);
+        }
+    }
+    return result_value;
+}
+
+uint16_t StM_TWI_Master::read_register_16bit(
+    StM_TWI::register_name_t reg_name
+) {
+    return read_register_8bit((uint8_t)reg_name);
+}
+
 
 
 // end slight_StepperManager_TWI_Master

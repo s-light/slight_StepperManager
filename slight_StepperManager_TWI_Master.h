@@ -48,11 +48,14 @@ class slight_StepperManager_TWI_Master {
 
     slight_StepperManager_TWI_Master(
         const uint8_t TWI_address_own_new,
-        const uint8_t TWI_address_extern_new
+        const uint8_t TWI_address_target_new
     );
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // names and definitions
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // public lib functions
 
     void begin(Print &);
     void update();
@@ -62,13 +65,48 @@ class slight_StepperManager_TWI_Master {
 
     void handle_onReceive_ISR(int rec_bytes);
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // setter / getter / actions
+
+    uint8_t general_state_read();
+    StM_States::sysstate_t system_state_read();
+    StM_States::error_t error_type_read();
+
+    void calibrate();
+    void move_forward();
+    void move_reverse();
+    void emergencystop();
+
+    uint16_t settings_move_speed_read();
+    void settings_move_speed_write(uint16_t value);
+    uint16_t settings_move_acceleration_read();
+    void settings_move_acceleration_write(uint16_t value);
+    uint16_t settings_calibration_speed_read();
+    void settings_calibration_speed_write(uint16_t value);
+    uint16_t settings_calibration_acceleration_read();
+    void settings_calibration_acceleration_write(uint16_t value);
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // basic read write operations
+    void write_register(StM_TWI::register_name_t reg_name);
+
+    void write_register_8bit(StM_TWI::register_name_t reg_name, uint8_t value);
+    uint8_t read_register_8bit(StM_TWI::register_name_t reg_name);
+
+    void write_register_16bit(StM_TWI::register_name_t reg_name, uint16_t value);
+    uint16_t read_register_16bit(StM_TWI::register_name_t reg_name);
+
  protected:
-    // wrap
+    // wrapper
     static slight_StepperManager_TWI_Master * active_instance;
+
+    bool ready;
 
     // TWI things
     const uint8_t TWI_address_own;
-    const uint8_t TWI_address_extern;
+    const uint8_t TWI_address_target;
+
+    StM_TWI::twi_state_t twi_state;
 
     volatile uint8_t received_general_state;
     volatile StM_States::sysstate_t received_system_state;
@@ -82,6 +120,14 @@ class slight_StepperManager_TWI_Master {
     uint8_t general_state;
     StM_States::sysstate_t system_state;
     StM_States::error_t error_type;
+
+    // basic read write operations
+    void write_register(uint8_t);
+
+    void write_register_8bit(uint8_t, uint8_t);
+    uint8_t read_register_8bit(uint8_t);
+    void write_register_16bit(uint8_t, uint16_t);
+    uint16_t read_register_16bit(uint8_t);
 
     // end
 };  // slight_StepperManager_TWI_Master
