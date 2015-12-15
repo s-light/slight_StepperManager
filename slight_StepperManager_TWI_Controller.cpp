@@ -115,8 +115,12 @@ void StM_TWI_Con::activate(slight_StepperManager_TWI_Controller *controller) {
 // ISR!!!!
 void StM_TWI_Con::TWI_request_event() {
     if (active_instance != NULL) {
-        active_instance->handle_request();
+        active_instance->handle_onRequest_ISR();
     }  // if active_instance
+}
+
+void StM_TWI_Con::handle_onRequest_ISR() {
+    handle_request();
 }
 
 void StM_TWI_Con::handle_request() {
@@ -177,23 +181,26 @@ void StM_TWI_Con::handle_request() {
 // ISR!!!!
 void StM_TWI_Con::TWI_receive_event(int rec_bytes) {
     if (active_instance != NULL) {
+        active_instance->handle_onReceive_ISR(rec_bytes);
+    }  // if active_instance
+}
+
+void StM_TWI_Con::handle_onReceive_ISR(int rec_bytes) {
         uint8_t rec_size = rec_bytes;
         if (rec_bytes > 0) {
             // read information
             // read register
-            active_instance->received_register =
-                (StM_TWI::register_name_t)Wire.read();
+            received_register = (StM_TWI::register_name_t)Wire.read();
             // memory received data bytes
-            active_instance->received_data_size = rec_size -1;
+            received_data_size = rec_size -1;
             if (rec_size > 1) {
                 // copy data to instance data buffer
                 for (size_t index = 1; index < rec_size; index++) {
-                    active_instance->received_data[index] = Wire.read();
+                    received_data[index] = Wire.read();
                 }
             }
-            active_instance->received_flag = true;
+            received_flag = true;
         }
-    }  // if active_instance
 }
 
 void StM_TWI_Con::handle_received() {

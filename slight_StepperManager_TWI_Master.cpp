@@ -99,29 +99,32 @@ void StM_TWI_Master::activate(slight_StepperManager_TWI_Master *instance) {
 // TWI handling
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// extern has send some information.
+// Master has send some information.
 // so we react on this.
 // ISR!!!!
 void StM_TWI_Master::TWI_receive_event(int rec_bytes) {
     if (active_instance != NULL) {
+        active_instance->handle_onReceive_ISR(rec_bytes);
+    }  // if active_instance
+}
+
+void StM_TWI_Master::handle_onReceive_ISR(int rec_bytes) {
+    if (active_instance != NULL) {
         uint8_t rec_size = rec_bytes;
         if (rec_bytes > 0) {
             // read general_state
-            active_instance->received_general_state =
-                (StM_TWI::register_name_t)Wire.read();
+            received_general_state = (StM_TWI::register_name_t)Wire.read();
 
             // check for system_state
             if (rec_size > 1) {
-                active_instance->received_system_state =
-                    (StM_States::sysstate_t)Wire.read();
+                received_system_state = (StM_States::sysstate_t)Wire.read();
 
                 // check for error_type
                 if (rec_size > 2) {
-                    active_instance->received_error_type =
-                        (StM_States::error_t)Wire.read();
+                    received_error_type = (StM_States::error_t)Wire.read();
                 }
             }
-            active_instance->received_flag = true;
+            received_flag = true;
         }
     }  // if active_instance
 }

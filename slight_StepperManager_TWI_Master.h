@@ -60,6 +60,8 @@ class slight_StepperManager_TWI_Master {
     // void activate();
     static void activate(slight_StepperManager_TWI_Master *instance);
 
+    void handle_onReceive_ISR(int rec_bytes);
+
  protected:
     // wrap
     static slight_StepperManager_TWI_Master * active_instance;

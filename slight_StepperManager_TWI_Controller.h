@@ -60,6 +60,8 @@ class slight_StepperManager_TWI_Controller {
     // void check_for_interrupt();
 
     // void check_for_interrupt();
+    void handle_onRequest_ISR();
+    void handle_onReceive_ISR(int rec_bytes);
 
  protected:
     static slight_StepperManager_TWI_Controller * active_instance;
@@ -79,7 +81,7 @@ class slight_StepperManager_TWI_Controller {
     const uint8_t TWI_address_extern;
 
     static void TWI_request_event();
-    static void TWI_receive_event(int received_bytes);
+    static void TWI_receive_event(int rec_bytes);
 
     void handle_request();
 
