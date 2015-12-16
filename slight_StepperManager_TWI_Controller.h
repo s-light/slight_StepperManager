@@ -57,9 +57,8 @@ class slight_StepperManager_TWI_Controller {
     // void activate();
     static void activate(slight_StepperManager_TWI_Controller *instance);
 
-    // void check_for_interrupt();
+    void system_state_changed();
 
-    // void check_for_interrupt();
     void handle_onRequest_ISR();
     void handle_onReceive_ISR(int rec_bytes);
 

@@ -87,12 +87,40 @@ void StM_TWI_Master::begin(Print &out) {
 
 void StM_TWI_Master::update() {
     // handle longer things that are not done in isr
+    handle_received();
 }
 
 // void StM_TWI_Master::activate() {
 void StM_TWI_Master::activate(slight_StepperManager_TWI_Master *instance) {
     // active_instance = &this;
     StM_TWI_Master::active_instance = instance;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// event callback
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+void StM_TWI_Master::event_callback_set(callback_t callback_function) {
+    event_callback = callback_function;
+}
+
+void StM_TWI_Master::fire_event_callback() {
+    if (event_callback) {
+        event_callback(this);
+    }
+}
+
+
+uint8_t StM_TWI_Master::general_state_get() {
+    return general_state;
+}
+
+StM_States::sysstate_t StM_TWI_Master::system_state_get() {
+    return system_state;
+}
+
+StM_States::error_t StM_TWI_Master::error_type_get() {
+    return error_type;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,6 +150,8 @@ void StM_TWI_Master::handle_onReceive_ISR(int rec_bytes) {
                 // check for error_type
                 if (rec_size > 2) {
                     received_error_type = (StM_States::error_t)Wire.read();
+                } else {
+                    received_error_type = StM_States::ERROR_none;
                 }
             }
             received_flag = true;
@@ -134,30 +164,39 @@ void StM_TWI_Master::handle_onReceive_ISR(int rec_bytes) {
 void StM_TWI_Master::handle_received() {
     if (received_flag) {
         // handle received things:
-            // generate event...
+        general_state = received_general_state;
+        system_state = received_system_state;
+        error_type = received_error_type;
+        // generate event...
+        fire_event_callback();
         // reset things:
         received_flag = false;
     }
 }
+
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TWI setter / getter / actions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 uint8_t StM_TWI_Master::general_state_read() {
-    return read_register_8bit(StM_TWI::REG_general_state);
+    general_state = read_register_8bit(StM_TWI::REG_general_state);
+    return general_state;
 }
 
 StM_States::sysstate_t StM_TWI_Master::system_state_read() {
     uint8_t temp;
     temp = read_register_8bit(StM_TWI::REG_system_state);
-    return (StM_States::sysstate_t)temp;
+    system_state = (StM_States::sysstate_t)temp;
+    return system_state;
 }
 
 StM_States::error_t StM_TWI_Master::error_type_read() {
     uint8_t temp;
     temp = read_register_8bit(StM_TWI::REG_error_type);
-    return (StM_States::error_t)temp;
+    error_type = (StM_States::error_t)temp;
+    return error_type;
 }
 
 

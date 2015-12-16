@@ -98,6 +98,7 @@ void StM_TWI_Con::begin(Print &out) {
 
 void StM_TWI_Con::update() {
     // handle longer things that are not done in isr
+    handle_received();
 }
 
 // void StM_TWI_Con::activate() {

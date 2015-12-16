@@ -51,8 +51,6 @@ class slight_StepperManager_TWI_Master {
         const uint8_t TWI_address_target_new
     );
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // names and definitions
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // public lib functions
@@ -66,11 +64,22 @@ class slight_StepperManager_TWI_Master {
     void handle_onReceive_ISR(int rec_bytes);
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // callback
+    typedef void (* callback_t) (slight_StepperManager_TWI_Master *instance);
+    void event_callback_set(callback_t);
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // setter / getter / actions
 
+    // twi
     uint8_t general_state_read();
     StM_States::sysstate_t system_state_read();
     StM_States::error_t error_type_read();
+
+    // get local copy
+    uint8_t general_state_get();
+    StM_States::sysstate_t system_state_get();
+    StM_States::error_t error_type_get();
 
     void calibrate();
     void move_forward();
@@ -93,7 +102,10 @@ class slight_StepperManager_TWI_Master {
     void write_register_8bit(StM_TWI::register_name_t reg_name, uint8_t value);
     uint8_t read_register_8bit(StM_TWI::register_name_t reg_name);
 
-    void write_register_16bit(StM_TWI::register_name_t reg_name, uint16_t value);
+    void write_register_16bit(
+        StM_TWI::register_name_t reg_name,
+        uint16_t value
+    );
     uint16_t read_register_16bit(StM_TWI::register_name_t reg_name);
 
  protected:
@@ -121,6 +133,9 @@ class slight_StepperManager_TWI_Master {
     StM_States::sysstate_t system_state;
     StM_States::error_t error_type;
 
+    callback_t event_callback;
+    void fire_event_callback();
+
     // basic read write operations
     void write_register(uint8_t);
 
@@ -128,7 +143,6 @@ class slight_StepperManager_TWI_Master {
     uint8_t read_register_8bit(uint8_t);
     void write_register_16bit(uint8_t, uint16_t);
     uint16_t read_register_16bit(uint8_t);
-
     // end
 };  // slight_StepperManager_TWI_Master
 
