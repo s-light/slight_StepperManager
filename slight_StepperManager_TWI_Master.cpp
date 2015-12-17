@@ -55,10 +55,8 @@ typedef slight_StepperManager_TWI_Master StM_TWI_Master;
 // constructor
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StM_TWI_Master::slight_StepperManager_TWI_Master(
-    const uint8_t TWI_address_own_new,
     const uint8_t TWI_address_target_new
 ) :
-    TWI_address_own(TWI_address_own_new),
     TWI_address_target(TWI_address_target_new)
 {
     // set some initial states:
@@ -72,17 +70,18 @@ slight_StepperManager_TWI_Master *StM_TWI_Master::active_instance = NULL;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void StM_TWI_Master::begin(Print &out) {
-    out.println(F("setup TWI:"));
-
-    out.print(F("\t join bus as slave with address "));
-    out.print(TWI_address_own);
-    out.println();
-    Wire.begin(TWI_address_own);
-
-    out.println(F("\t setup onReceive event handling."));
-    Wire.onReceive(TWI_receive_event);
-
-    out.println(F("\t finished."));
+    // out.println(F("setup TWI:"));
+    //
+    // out.print(F("\t join bus as slave with address "));
+    // out.print(TWI_address_own);
+    // out.println();
+    // Wire.begin(TWI_address_own);
+    //
+    // out.println(F("\t setup onReceive event handling."));
+    // Wire.onReceive(TWI_receive_event);
+    //
+    // out.println(F("\t finished."));
+    ready = true;
 }
 
 void StM_TWI_Master::update() {

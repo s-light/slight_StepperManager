@@ -47,7 +47,6 @@ class slight_StepperManager_TWI_Master {
     // slight_StepperManager
 
     slight_StepperManager_TWI_Master(
-        const uint8_t TWI_address_own_new,
         const uint8_t TWI_address_target_new
     );
 
@@ -115,7 +114,6 @@ class slight_StepperManager_TWI_Master {
     bool ready;
 
     // TWI things
-    const uint8_t TWI_address_own;
     const uint8_t TWI_address_target;
 
     StM_TWI::twi_state_t twi_state;
