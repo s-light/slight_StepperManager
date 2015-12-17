@@ -122,6 +122,16 @@ StM_States::error_t StM_TWI_Master::error_type_get() {
     return error_type;
 }
 
+void StM_TWI_Master::system_state_print(Print &out) {
+    StM_States::print_state(out, system_state);
+}
+
+void StM_TWI_Master::error_type_print(Print &out) {
+    StM_States::print_error(out, error_type);
+}
+
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TWI handling
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

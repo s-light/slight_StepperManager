@@ -256,17 +256,17 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         //---------------------------------------------------------------------
         case 'c': {
             out.print(F("\t forward."));
-            MoCon::myStepperManager.calibration_start();
+            myStM_TWI_Master.calibrate();
             out.println();
         } break;
         case 'f': {
             out.print(F("\t forward."));
-            MoCon::myStepperManager.motor_move_forward();
+            myStM_TWI_Master.move_forward();
             out.println();
         } break;
         case 'r': {
             out.print(F("\t reverse."));
-            MoCon::myStepperManager.motor_move_reverse();
+            myStM_TWI_Master.move_reverse();
             out.println();
         } break;
         case 'p': {
@@ -276,7 +276,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         } break;
         case 's': {
             out.print(F("\t emergency stop"));
-            MoCon::myStepperManager.system_emergencystop();
+            myStM_TWI_Master.emergencystop();
             out.println();
         } break;
         case 'l': {
@@ -284,7 +284,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             uint16_t threshold = atoi(&command[1]);
             out.print(threshold);
             out.println();
-            MoCon::myStepperManager.calibration_limit_threshold_set(threshold);
+            myStM_TWI_Master.calibration_limit_threshold_set(threshold);
         } break;
         //---------------------------------------------------------------------
         case 'a': {
@@ -389,32 +389,32 @@ void init_things() {
 
 void print_systemevent() {
     Serial.print(F("system_state: "));
-    // MoCon::myStepperManager.print_state(
+    // myStM_TWI_Master.print_state(
     //     Serial,
-    //     MoCon::myStepperManager.system_state_get()
+    //     myStM_TWI_Master.system_state_get()
     // );
-    MoCon::myStepperManager.print_state(Serial);
+    myStM_TWI_Master.print_state(Serial);
     Serial.println();
-    switch (MoCon::myStepperManager.system_state_get()) {
+    switch (myStM_TWI_Master.system_state_get()) {
         case StM_States::STATE_error: {
             // print error
             Serial.print(F("error: "));
-            // MoCon::myStepperManager.print_error(
+            // myStM_TWI_Master.print_error(
             //     Serial,
-            //     MoCon::myStepperManager.error_type_get()
+            //     myStM_TWI_Master.error_type_get()
             // );
-            MoCon::myStepperManager.print_error(Serial);
+            myStM_TWI_Master.print_error(Serial);
             Serial.println();
         } break;
-        case StM_States::STATE_calibrating_finished: {
-            // print limit values to serial
-            Serial.print(F(" *forwardLimit: "));
-            Serial.print(MoCon::myStepperManager.motor.forwardLimit);
-            Serial.println();
-            Serial.print(F(" *reverseLimit: "));
-            Serial.print(MoCon::myStepperManager.motor.reverseLimit);
-            Serial.println();
-        } break;
+        // case StM_States::STATE_calibrating_finished: {
+        //     // print limit values to serial
+        //     Serial.print(F(" *forwardLimit: "));
+        //     Serial.print(myStM_TWI_Master.motor.forwardLimit);
+        //     Serial.println();
+        //     Serial.print(F(" *reverseLimit: "));
+        //     Serial.print(myStM_TWI_Master.motor.reverseLimit);
+        //     Serial.println();
+        // } break;
         default: {
             // nothing to do here.
         } break;

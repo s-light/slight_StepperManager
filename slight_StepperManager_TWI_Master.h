@@ -79,6 +79,9 @@ class slight_StepperManager_TWI_Master {
     uint8_t general_state_get();
     StM_States::sysstate_t system_state_get();
     StM_States::error_t error_type_get();
+    // print local copy
+    void print_error(Print &out);
+    void print_state(Print &out);
 
     void calibrate();
     void move_forward();
