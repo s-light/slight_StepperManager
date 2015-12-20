@@ -69,15 +69,34 @@
 #include <slight_DebugMenu.h>
 // #include <slight_ButtonInput.h>
 
+
+// the following are only needed because the Arduino IDE don't get it ;-)
+// they are not used in the code and
+// the linker will hopefully optimize them away...
+#include <slight_ButtonInput.h>
+#include <kissStepper.h>
+#include <kissStepper_TriState.h>
+#include <slight_StepperManager.h>
+#include <slight_StepperManager_TWI.h>
+#include <slight_StepperManager_TWI_Controller.h>
+
+
+
 #include <slight_StepperManager_States.h>
 typedef slight_StepperManager_States StM_States;
 // using StM_States = slight_StepperManager_States;
 // #include "slight_StepperManager_TWI.h"
 // typedef slight_StepperManager_TWI StM_TWI;
 // // using StM_TWI = slight_StepperManager_TWI;
-#include "slight_StepperManager_TWI_Master.h"
+#include <Wire.h>
+#include <slight_StepperManager_TWI_Master.h>
 typedef slight_StepperManager_TWI_Master StM_TWI_Master;
 // using StM_TWI_Master = slight_StepperManager_TWI_Master;
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// function definitions
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void print_systemevent(slight_StepperManager_TWI_Master *instance);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Info
@@ -205,10 +224,14 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.println(F("\t 'p': print system state"));
             out.println(F("\t 's': emergency stop"));
             out.println();
-            out.println(F("\t 'a': motor set acceleration 'a500'"));
-            out.println(F("\t 'A': motor get acceleration"));
-            out.println(F("\t 'q': motor set MaxSpeed 's500'"));
-            out.println(F("\t 'Q': motor get MaxSpeed"));
+            out.println(F("\t 'a': move acceleration write 'a500'"));
+            out.println(F("\t 'A': move acceleration read"));
+            out.println(F("\t 'q': move speed write 's500'"));
+            out.println(F("\t 'Q': move speed read"));
+            out.println(F("\t 'w': calibration acceleration write 'a500'"));
+            out.println(F("\t 'W': calibration acceleration read"));
+            out.println(F("\t 'e': calibration speed write 's500'"));
+            out.println(F("\t 'E': calibration speed read"));
             out.println();
             out.println(F("____________________________________________________________"));
         } break;
@@ -272,46 +295,70 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         case 'p': {
             out.print(F("\t print system event"));
             out.println();
-            print_systemevent();
+            print_systemevent(&myStM_TWI_Master);
         } break;
         case 's': {
             out.print(F("\t emergency stop"));
             myStM_TWI_Master.emergencystop();
             out.println();
         } break;
-        case 'l': {
-            out.print(F("\t set limit threshold "));
-            uint16_t threshold = atoi(&command[1]);
-            out.print(threshold);
-            out.println();
-            myStM_TWI_Master.calibration_limit_threshold_set(threshold);
-        } break;
         //---------------------------------------------------------------------
         case 'a': {
-            out.print(F("\t set motor acceleration "));
+            out.print(F("\t move acceleration write "));
             uint16_t acceleration = atoi(&command[1]);
             out.print(acceleration);
-            MoCon::myStepperMotor.setAccel(acceleration);
+            myStM_TWI_Master.settings_move_acceleration_write(acceleration);
             out.println();
         } break;
         case 'A': {
-            out.print(F("\t motor get acceleration:"));
+            out.print(F("\t move acceleration:"));
             uint16_t acceleration;
-            acceleration = MoCon::myStepperMotor.getAccel();
+            acceleration = myStM_TWI_Master.settings_move_acceleration_read();
             out.print(acceleration);
             out.println();
         } break;
         case 'q': {
-            out.print(F("\t motor set MaxSpeed "));
+            out.print(F("\t move speed write "));
             uint16_t speed = atoi(&command[1]);
             out.print(speed);
-            MoCon::myStepperMotor.setMaxSpeed(speed);
+            myStM_TWI_Master.settings_move_speed_write(speed);
             out.println();
         } break;
         case 'Q': {
-            out.print(F("\t motor get MaxSpeed:"));
+            out.print(F("\t move speed:"));
             uint16_t speed;
-            speed = MoCon::myStepperMotor.getMaxSpeed();
+            speed = myStM_TWI_Master.settings_move_speed_read();
+            out.print(speed);
+            out.println();
+        } break;
+        case 'w': {
+            out.print(F("\t calibration acceleration write "));
+            uint16_t acceleration = atoi(&command[1]);
+            out.print(acceleration);
+            myStM_TWI_Master.settings_calibration_acceleration_write(
+                acceleration
+            );
+            out.println();
+        } break;
+        case 'W': {
+            out.print(F("\t calibration acceleration:"));
+            uint16_t acceleration;
+            acceleration =
+                myStM_TWI_Master.settings_calibration_acceleration_read();
+            out.print(acceleration);
+            out.println();
+        } break;
+        case 'e': {
+            out.print(F("\t calibration speed write "));
+            uint16_t speed = atoi(&command[1]);
+            out.print(speed);
+            myStM_TWI_Master.settings_calibration_speed_write(speed);
+            out.println();
+        } break;
+        case 'E': {
+            out.print(F("\t calibration speed:"));
+            uint16_t speed;
+            speed = myStM_TWI_Master.settings_calibration_speed_read();
             out.print(speed);
             out.println();
         } break;
@@ -351,7 +398,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
 
 void init_things(Print &out) {
     out.println(F("setup TWI:"));
-    myStM_TWI_Master.begin();
+    myStM_TWI_Master.begin(out);
     myStM_TWI_Master.event_callback_set(
         print_systemevent
     );
@@ -364,38 +411,24 @@ void init_things(Print &out) {
     Wire.begin(TWI_address_own);
 
     out.println(F("\t setup onReceive event handling."));
-    Wire.onReceive(myStM_TWI_Master.TWI_receive_event);
+    Wire.onReceive(wire_onReceive);
 
     out.println(F("\t finished."));
 }
 
-void init_things() {
-    out.println(F("setup TWI:"));
-    myStM_TWI_Master.begin();
-
-    out.println(F("\t finished."));
-    out.println(F("setup TWI:"));
-
-    out.print(F("\t join bus as slave with address "));
-    out.print(TWI_address_own);
-    out.println();
-    Wire.begin(TWI_address_own);
-
-    out.println(F("\t setup onReceive event handling."));
-    Wire.onReceive(myStM_TWI_Master.TWI_receive_event);
-
-    out.println(F("\t finished."));
+void wire_onReceive(int rec_bytes) {
+    myStM_TWI_Master.handle_onReceive_ISR(rec_bytes);
 }
 
-void print_systemevent() {
+void print_systemevent(slight_StepperManager_TWI_Master *instance) {
     Serial.print(F("system_state: "));
     // myStM_TWI_Master.print_state(
     //     Serial,
     //     myStM_TWI_Master.system_state_get()
     // );
-    myStM_TWI_Master.print_state(Serial);
+    instance->system_state_print(Serial);
     Serial.println();
-    switch (myStM_TWI_Master.system_state_get()) {
+    switch (instance->system_state_get()) {
         case StM_States::STATE_error: {
             // print error
             Serial.print(F("error: "));
@@ -403,7 +436,7 @@ void print_systemevent() {
             //     Serial,
             //     myStM_TWI_Master.error_type_get()
             // );
-            myStM_TWI_Master.print_error(Serial);
+            instance->error_type_print(Serial);
             Serial.println();
         } break;
         // case StM_States::STATE_calibrating_finished: {
@@ -498,7 +531,7 @@ void loop() {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Stepper Manager
-        MoCon::update();
+        myStM_TWI_Master.update();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // debug output
