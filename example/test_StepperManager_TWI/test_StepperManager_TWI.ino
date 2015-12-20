@@ -776,18 +776,18 @@ void print_systemevent() {
         } break;
     }
 
-    // slight_StepperManager::print_state(Serial, system_state);
-    MoCon::myStepperManager.print_state(Serial);
+    // slight_StepperManager::system_state_print(Serial, system_state);
+    MoCon::myStepperManager.system_state_print(Serial);
     Serial.println();
     switch (system_state) {
         case StM_States::STATE_error: {
             // print error
             Serial.print(F("error: "));
-            // MoCon::myStepperManager.print_error(
+            // MoCon::myStepperManager.error_type_print(
             //     Serial,
             //     MoCon::myStepperManager.error_type_get()
             // );
-            MoCon::myStepperManager.print_error(Serial);
+            MoCon::myStepperManager.error_type_print(Serial);
             Serial.println();
         } break;
         case StM_States::STATE_calibrating_finished: {

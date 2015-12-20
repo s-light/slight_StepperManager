@@ -54,7 +54,7 @@ public:
         ERROR_mechanics_moved,
         ERROR_emergencystop,
     };
-    static void print_error(Print&, error_t);
+    static void error_type_print(Print&, error_t);
 
     // enum class sysstate_t : uint8_t {      // c++ typesafe; arduino > 1.6.
     enum sysstate_t {  // c
@@ -76,7 +76,7 @@ public:
         STATE_calibrating_reverse_finished,
         STATE_calibrating_finished,
     };
-    static void print_state(Print&, sysstate_t);
+    static void system_state_print(Print&, sysstate_t);
 
     static void motor_print_mode(Print &out, uint8_t mode);
 

@@ -422,7 +422,7 @@ void wire_onReceive(int rec_bytes) {
 
 void print_systemevent(slight_StepperManager_TWI_Master *instance) {
     Serial.print(F("system_state: "));
-    // myStM_TWI_Master.print_state(
+    // myStM_TWI_Master.system_state_print(
     //     Serial,
     //     myStM_TWI_Master.system_state_get()
     // );
@@ -432,7 +432,7 @@ void print_systemevent(slight_StepperManager_TWI_Master *instance) {
         case StM_States::STATE_error: {
             // print error
             Serial.print(F("error: "));
-            // myStM_TWI_Master.print_error(
+            // myStM_TWI_Master.error_type_print(
             //     Serial,
             //     myStM_TWI_Master.error_type_get()
             // );

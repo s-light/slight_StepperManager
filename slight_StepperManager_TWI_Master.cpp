@@ -123,11 +123,11 @@ StM_States::error_t StM_TWI_Master::error_type_get() {
 }
 
 void StM_TWI_Master::system_state_print(Print &out) {
-    StM_States::print_state(out, system_state);
+    StM_States::system_state_print(out, system_state);
 }
 
 void StM_TWI_Master::error_type_print(Print &out) {
-    StM_States::print_error(out, error_type);
+    StM_States::error_type_print(out, error_type);
 }
 
 

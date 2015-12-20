@@ -106,8 +106,8 @@ public:
     // };
     // StM_States::error_t error_type; now private
     StM_States::error_t error_type_get();
-    // static void print_error(Print&, StM_States::error_t);
-    void print_error(Print&);
+    // static void error_type_print(Print&, StM_States::error_t);
+    void error_type_print(Print&);
 
     // enum class sysstate_t : uint8_t {      // c++ typesafe; arduino > 1.6.
     // enum sysstate_t {  // c
@@ -131,8 +131,8 @@ public:
     // };
     // sysstate_t system_state; now private
     StM_States::sysstate_t system_state_get();
-    // static void print_state(Print&, StM_States::sysstate_t);
-    void print_state(Print&);
+    // static void system_state_print(Print&, StM_States::sysstate_t);
+    void system_state_print(Print&);
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // stepper motor

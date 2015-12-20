@@ -737,7 +737,7 @@ StM_States::error_t slight_StepperManager::error_type_get() {
     return error_type;
 }
 
-// void slight_StepperManager::print_error(Print &out, error_t error) {
+// void slight_StepperManager::error_type_print(Print &out, error_t error) {
 //     switch (error) {
 //         case StM_States::ERROR_none: {
 //             out.print(F("none"));
@@ -770,15 +770,15 @@ StM_States::error_t slight_StepperManager::error_type_get() {
 //     }
 // }
 
-void slight_StepperManager::print_error(Print &out) {
-    StM_States::print_error(out, error_type);
+void slight_StepperManager::error_type_print(Print &out) {
+    StM_States::error_type_print(out, error_type);
 }
 
 StM_States::sysstate_t slight_StepperManager::system_state_get() {
     return system_state;
 }
 
-// void slight_StepperManager::print_state(Print &out, StM_States::sysstate_t state) {
+// void slight_StepperManager::system_state_print(Print &out, StM_States::sysstate_t state) {
 //     switch (state) {
 //         case StM_States::STATE_notvalid: {
 //             out.print(F("notvalid"));
@@ -834,8 +834,8 @@ StM_States::sysstate_t slight_StepperManager::system_state_get() {
 //     }
 // }
 
-void slight_StepperManager::print_state(Print &out) {
-    StM_States::print_state(out, system_state);
+void slight_StepperManager::system_state_print(Print &out) {
+    StM_States::system_state_print(out, system_state);
 }
 
 

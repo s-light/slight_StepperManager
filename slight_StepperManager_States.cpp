@@ -72,7 +72,7 @@ void slight_StepperManager_States::motor_print_mode(Print &out, uint8_t mode) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // public system state & error type printing
 
-void slight_StepperManager_States::print_error(Print &out, error_t error) {
+void slight_StepperManager_States::error_type_print(Print &out, error_t error) {
     switch (error) {
         case ERROR_none: {
             out.print(F("none"));
@@ -105,7 +105,7 @@ void slight_StepperManager_States::print_error(Print &out, error_t error) {
     }
 }
 
-void slight_StepperManager_States::print_state(Print &out, sysstate_t state) {
+void slight_StepperManager_States::system_state_print(Print &out, sysstate_t state) {
     switch (state) {
         case STATE_notvalid: {
             out.print(F("notvalid"));

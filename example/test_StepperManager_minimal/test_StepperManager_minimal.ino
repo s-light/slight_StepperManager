@@ -648,21 +648,21 @@ void menu_switcher(slight_DebugMenu *pInstance) {
 
 void print_systemevent() {
     Serial.print(F("system_state: "));
-    // MoCon::myStepperManager.print_state(
+    // MoCon::myStepperManager.system_state_print(
     //     Serial,
     //     MoCon::myStepperManager.system_state_get()
     // );
-    MoCon::myStepperManager.print_state(Serial);
+    MoCon::myStepperManager.system_state_print(Serial);
     Serial.println();
     switch (MoCon::myStepperManager.system_state_get()) {
         case StM_States::STATE_error: {
             // print error
             Serial.print(F("error: "));
-            // MoCon::myStepperManager.print_error(
+            // MoCon::myStepperManager.error_type_print(
             //     Serial,
             //     MoCon::myStepperManager.error_type_get()
             // );
-            MoCon::myStepperManager.print_error(Serial);
+            MoCon::myStepperManager.error_type_print(Serial);
             Serial.println();
         } break;
         case StM_States::STATE_calibrating_finished: {

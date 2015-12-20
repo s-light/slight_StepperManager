@@ -1077,11 +1077,11 @@ void display_motorenabled_update() {
 
 void display_systemevent() {
     Serial.print(F("system_state: "));
-    // MoCon::myStepperManager.print_state(
+    // MoCon::myStepperManager.system_state_print(
     //     Serial,
     //     MoCon::myStepperManager.system_state_get()
     // );
-    MoCon::myStepperManager.print_state(Serial);
+    MoCon::myStepperManager.system_state_print(Serial);
     Serial.println();
     lcd.setCursor(0,1);
     // clear second line of lcd
@@ -1092,17 +1092,17 @@ void display_systemevent() {
         StM_States::STATE_error
     ) {
         // print error
-        MoCon::myStepperManager.print_error(lcd);
+        MoCon::myStepperManager.error_type_print(lcd);
         Serial.print(F("error: "));
-        // MoCon::myStepperManager.print_error(
+        // MoCon::myStepperManager.error_type_print(
         //     Serial,
         //     MoCon::myStepperManager.error_type_get()
         // );
-        MoCon::myStepperManager.print_error(Serial);
+        MoCon::myStepperManager.error_type_print(Serial);
         Serial.println();
     } else {
         // print system state
-        MoCon::myStepperManager.print_state(lcd);
+        MoCon::myStepperManager.system_state_print(lcd);
         // if calibration finished
         if(
             MoCon::myStepperManager.system_state_get() ==
