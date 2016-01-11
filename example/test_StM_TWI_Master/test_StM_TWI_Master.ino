@@ -278,7 +278,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         } break;
         //---------------------------------------------------------------------
         case 'c': {
-            out.print(F("\t forward."));
+            out.print(F("\t calibrate."));
             myStM_TWI_Master.calibrate();
             out.println();
         } break;
@@ -398,13 +398,6 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
 
 void init_things(Print &out) {
     out.println(F("setup TWI:"));
-    myStM_TWI_Master.begin(out);
-    myStM_TWI_Master.event_callback_set(
-        print_systemevent
-    );
-    out.println(F("\t finished."));
-    out.println(F("setup TWI:"));
-
     out.print(F("\t join bus as slave with address "));
     out.print(TWI_address_own);
     out.println();
@@ -412,7 +405,15 @@ void init_things(Print &out) {
 
     out.println(F("\t setup onReceive event handling."));
     Wire.onReceive(wire_onReceive);
+    out.println(F("\t finished."));
 
+
+    out.println(F("setup TWI StepperManager:"));
+    myStM_TWI_Master.begin(out);
+    out.println(F("\t set event callback"));
+    myStM_TWI_Master.event_callback_set(
+        print_systemevent
+    );
     out.println(F("\t finished."));
 }
 
@@ -489,7 +490,7 @@ void setup() {
             // Wait for Serial Connection to be Opend from Host or
             // timeout after 6second
             uint32_t timeStamp_Start = millis();
-            while( (! Serial) && ( (millis() - timeStamp_Start) < 2000 ) ) {
+            while( (! Serial) && ( (millis() - timeStamp_Start) < 5000 ) ) {
                 // nothing to do
             }
         #endif

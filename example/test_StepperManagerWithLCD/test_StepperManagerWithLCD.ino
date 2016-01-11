@@ -742,7 +742,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         } break;
         case 's': {
             out.print(F("\t emergency stop"));
-            MoCon::myStepperManager.system_emergencystop();
+            MoCon::myStepperManager.emergencystop();
             out.println();
         } break;
         case 'l': {

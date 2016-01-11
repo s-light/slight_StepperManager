@@ -115,6 +115,7 @@ class slight_StepperManager_TWI_Master {
     static slight_StepperManager_TWI_Master * active_instance;
 
     bool ready;
+    bool debug_print;
 
     // TWI things
     const uint8_t TWI_address_target;

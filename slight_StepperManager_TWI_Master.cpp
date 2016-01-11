@@ -60,6 +60,7 @@ StM_TWI_Master::slight_StepperManager_TWI_Master(
     TWI_address_target(TWI_address_target_new)
 {
     // set some initial states:
+    debug_print = false;
 }
 
 // init pointer to null
@@ -70,7 +71,17 @@ slight_StepperManager_TWI_Master *StM_TWI_Master::active_instance = NULL;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void StM_TWI_Master::begin(Print &out) {
-    // out.println(F("setup TWI:"));
+    out.println(F("begin StM_TWI_Master:"));
+    // first set ready to true - only than the TWI read/writes are done..
+    ready = true;
+    // show transmission states
+    debug_print = true;
+    out.println(F("\t read general state.."));
+    general_state_read();
+    out.println(F("\t read system state.."));
+    system_state_read();
+    out.println(F("\t read error type read.."));
+    error_type_read();
     //
     // out.print(F("\t join bus as slave with address "));
     // out.print(TWI_address_own);
@@ -80,8 +91,8 @@ void StM_TWI_Master::begin(Print &out) {
     // out.println(F("\t setup onReceive event handling."));
     // Wire.onReceive(TWI_receive_event);
     //
-    // out.println(F("\t finished."));
-    ready = true;
+    debug_print = false;
+    out.println(F("\t finished."));
 }
 
 void StM_TWI_Master::update() {
@@ -136,7 +147,7 @@ void StM_TWI_Master::error_type_print(Print &out) {
 // TWI handling
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Master has send some information.
+// Slave has send some information.
 // so we react on this.
 // ISR!!!!
 void StM_TWI_Master::TWI_receive_event(int rec_bytes) {
@@ -283,8 +294,13 @@ void StM_TWI_Master::write_register(uint8_t reg_name) {
         twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
         if (twi_state == StM_TWI::TWI_STATE_success) {
             // all fine.
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         } else {
-            // print_transmission_state(Serial, twi_state);
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         }
     }
 }
@@ -306,8 +322,13 @@ void StM_TWI_Master::write_register_8bit(uint8_t reg_name, uint8_t value) {
         twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
         if (twi_state == StM_TWI::TWI_STATE_success) {
             // all fine.
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         } else {
-            // print_transmission_state(Serial, twi_state);
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         }
     }
 }
@@ -331,8 +352,13 @@ uint8_t StM_TWI_Master::read_register_8bit(uint8_t reg_name) {
             // read data
             Wire.requestFrom(TWI_address_target, sizeof(uint8_t));
             result_value = Wire.read();
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         } else {
-            // print_transmission_state(Serial, twi_state);
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         }
     }
     return result_value;
@@ -355,8 +381,13 @@ void StM_TWI_Master::write_register_16bit(uint8_t reg_name, uint16_t value) {
         twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
         if (twi_state == StM_TWI::TWI_STATE_success) {
             // all fine.
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         } else {
-            // print_transmission_state(Serial, twi_state);
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         }
     }
 }
@@ -380,8 +411,13 @@ uint16_t StM_TWI_Master::read_register_16bit(uint8_t reg_name) {
             // read data
             Wire.requestFrom(TWI_address_target, sizeof(uint16_t));
             TWI_readAnything(result_value);
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         } else {
-            // print_transmission_state(Serial, twi_state);
+            if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            }
         }
     }
     return result_value;

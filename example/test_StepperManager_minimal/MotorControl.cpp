@@ -69,6 +69,8 @@ namespace MotorControl {
         // 10,  // pinMS2
         //  9   // pinMS3
     );
+    // if config pins are unconnected board defaults to
+    // 16uSteps    interpolated to 256 μsteps    stealthChop (quite run)
 
     // kissMicrostepConfig for Trinamic TMC2100
     // http://www.trinamic.com/products/integrated-circuits/stepper-power-driver/tmc2100

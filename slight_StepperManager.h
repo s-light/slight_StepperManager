@@ -83,12 +83,12 @@ public:
     void system_event_set_callback(callback_t);
 
     // calibration
-    void calibration_start();
+    void calibrate();
     void calibration_limit_threshold_set(uint16_t);
     uint16_t calibration_limit_threshold_get();
 
     // emergency stop
-    void system_emergencystop();
+    void emergencystop();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // system state
@@ -144,8 +144,8 @@ public:
     int8_t motor_isenabled;
 
     static void motor_print_mode(Print &out, uint8_t mode);
-    bool motor_move_forward();
-    bool motor_move_reverse();
+    bool move_forward();
+    bool move_reverse();
     bool motor_move_forward_raw();
     bool motor_move_reverse_raw();
 

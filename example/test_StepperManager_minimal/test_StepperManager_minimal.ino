@@ -544,12 +544,12 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         } break;
         case 'f': {
             out.print(F("\t forward."));
-            MoCon::myStepperManager.motor_move_forward();
+            MoCon::myStepperManager.move_forward();
             out.println();
         } break;
         case 'r': {
             out.print(F("\t reverse."));
-            MoCon::myStepperManager.motor_move_reverse();
+            MoCon::myStepperManager.move_reverse();
             out.println();
         } break;
         case 'p': {
@@ -559,7 +559,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         } break;
         case 's': {
             out.print(F("\t emergency stop"));
-            MoCon::myStepperManager.system_emergencystop();
+            MoCon::myStepperManager.emergencystop();
             out.println();
         } break;
         case 'l': {

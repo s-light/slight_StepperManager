@@ -201,9 +201,10 @@ int freeRam () {
 // Modes for Menu Switcher
 const uint8_t menu_mode__MenuMain = 1;
 const uint8_t menu_mode__MenuMotor = 2;
+const uint8_t menu_mode__MenuStepperManager = 3;
 uint8_t menu_mode = menu_mode__MenuMain;
 
-// SubMenu SetValues
+// SubMenu Motor
 void menu_handle_Motor(slight_DebugMenu *pInstance) {
     Print &out = pInstance->get_stream_out_ref();
     char *command = pInstance->get_command_current_pointer();
@@ -532,6 +533,152 @@ void menu_handle_Motor(slight_DebugMenu *pInstance) {
     } //end switch
 } // end Menu Motor
 
+// SubMenu MotorControl
+void menu_handle_StepperManager(slight_DebugMenu *pInstance) {
+    Print &out = pInstance->get_stream_out_ref();
+    char *command = pInstance->get_command_current_pointer();
+    // out.print("sub1 command: '");
+    // out.print(command);
+    // out.println("'");
+    switch (command[0]) {
+        case '?': {
+            // help
+            out.println(F("____________________________________________________________"));
+            out.println();
+            out.println(F("Help for StepperManager:"));
+            out.println();
+            out.println(F("\t '?': this help"));
+            out.println(F("\t 'x': exit SubMenu"));
+            out.println();
+            out.println(F("\t 'c': calibrate"));
+            out.println(F("\t 'f': forward"));
+            out.println(F("\t 'r': reverse"));
+            out.println(F("\t 'p': print system state"));
+            out.println(F("\t 's': emergency stop"));
+            out.println();
+            out.println(F("\t 'a': move acceleration set 'a500'"));
+            out.println(F("\t 'A': move acceleration get"));
+            out.println(F("\t 'q': move speed set 's500'"));
+            out.println(F("\t 'Q': move speed get"));
+            out.println(F("\t 'w': calibration acceleration set 'a500'"));
+            out.println(F("\t 'W': calibration acceleration get"));
+            out.println(F("\t 'e': calibration speed set 's500'"));
+            out.println(F("\t 'E': calibration speed get"));
+            out.println();
+            out.println(F("____________________________________________________________"));
+        } break;
+        //---------------------------------------------------------------------
+        case 'x': {
+            out.println(F("exit Menu Motor."));
+            menu_mode = menu_mode__MenuMain;
+        } break;
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        case 'c': {
+            out.print(F("\t calibrate."));
+            MoCon::myStepperManager.calibrate();
+            out.println();
+        } break;
+        case 'f': {
+            out.print(F("\t forward."));
+            MoCon::myStepperManager.move_forward();
+            out.println();
+        } break;
+        case 'r': {
+            out.print(F("\t reverse."));
+            MoCon::myStepperManager.move_reverse();
+            out.println();
+        } break;
+        case 'p': {
+            out.print(F("\t print system event"));
+            out.println();
+            handle_systemevent();
+        } break;
+        case 's': {
+            out.print(F("\t emergency stop"));
+            MoCon::myStepperManager.emergencystop();
+            out.println();
+        } break;
+        //---------------------------------------------------------------------
+        case 'a': {
+            out.print(F("\t move acceleration set "));
+            uint16_t acceleration = atoi(&command[1]);
+            out.print(acceleration);
+            MoCon::myStepperManager.move_acceleration_set(acceleration);
+            out.println();
+        } break;
+        case 'A': {
+            out.print(F("\t move acceleration:"));
+            uint16_t acceleration;
+            acceleration = MoCon::myStepperManager.move_acceleration_get();
+            out.print(acceleration);
+            out.println();
+        } break;
+        case 'q': {
+            out.print(F("\t move speed set "));
+            uint16_t speed = atoi(&command[1]);
+            out.print(speed);
+            MoCon::myStepperManager.move_speed_set(speed);
+            out.println();
+        } break;
+        case 'Q': {
+            out.print(F("\t move speed:"));
+            uint16_t speed;
+            speed = MoCon::myStepperManager.move_speed_get();
+            out.print(speed);
+            out.println();
+        } break;
+        case 'w': {
+            out.print(F("\t calibration acceleration set "));
+            uint16_t acceleration = atoi(&command[1]);
+            out.print(acceleration);
+            MoCon::myStepperManager.calibration_acceleration_set(
+                acceleration
+            );
+            out.println();
+        } break;
+        case 'W': {
+            out.print(F("\t calibration acceleration:"));
+            uint16_t acceleration;
+            acceleration =
+                MoCon::myStepperManager.calibration_acceleration_get();
+            out.print(acceleration);
+            out.println();
+        } break;
+        case 'e': {
+            out.print(F("\t calibration speed set "));
+            uint16_t speed = atoi(&command[1]);
+            out.print(speed);
+            MoCon::myStepperManager.calibration_speed_set(speed);
+            out.println();
+        } break;
+        case 'E': {
+            out.print(F("\t calibration speed:"));
+            uint16_t speed;
+            speed = MoCon::myStepperManager.calibration_speed_get();
+            out.print(speed);
+            out.println();
+        } break;
+        //---------------------------------------------------------------------
+        default: {
+            if(strlen(command) > 0) {
+                out.print(F("command '"));
+                out.print(command);
+                out.println(F("' not recognized. try again."));
+                pInstance->get_command_input_pointer()[0] = '?';
+                pInstance->set_flag_EOL(true);
+            } else {
+                // exit submenu
+                // menu_mode = menu_mode__MainMenu;
+                // or
+                // only show help
+                pInstance->get_command_input_pointer()[0] = '?';
+                pInstance->set_flag_EOL(true);
+            }
+        }
+    } //end switch
+} // end Menu Motor
+
 
 // Main Menu
 void menu_handle_Main(slight_DebugMenu *pInstance) {
@@ -562,6 +709,7 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.println(F("\t 's': emergency stop"));
             out.println();
             out.println(F("\t 'motor': enter Menu Motor "));
+            out.println(F("\t 'manager': enter Menu StepperManager "));
             out.println();
             out.println(F("____________________________________________________________"));
         } break;
@@ -609,27 +757,27 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         //---------------------------------------------------------------------
         case 'c': {
             out.print(F("\t forward."));
-            MoCon::myStepperManager.calibration_start();
+            MoCon::myStepperManager.calibrate();
             out.println();
         } break;
         case 'f': {
             out.print(F("\t forward."));
-            MoCon::myStepperManager.motor_move_forward();
+            MoCon::myStepperManager.move_forward();
             out.println();
         } break;
         case 'r': {
             out.print(F("\t reverse."));
-            MoCon::myStepperManager.motor_move_reverse();
+            MoCon::myStepperManager.move_reverse();
             out.println();
         } break;
         case 'p': {
             out.print(F("\t print system event"));
             out.println();
-            print_systemevent();
+            handle_systemevent();
         } break;
         case 's': {
             out.print(F("\t emergency stop"));
-            MoCon::myStepperManager.system_emergencystop();
+            MoCon::myStepperManager.emergencystop();
             out.println();
         } break;
         case 'l': {
@@ -679,6 +827,31 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
                     pInstance->get_command_input_pointer()[0] = '?';
                     pInstance->set_flag_EOL(true);
                 }
+            } else {
+                if (
+                    (command[0] == 'm') &&
+                    (command[1] == 'a') &&
+                    (command[2] == 'n') &&
+                    (command[3] == 'a') &&
+                    (command[4] == 'g') &&
+                    (command[5] == 'e') &&
+                    (command[6] == 'r')
+                ) {
+                    // switch to submenu
+                    menu_mode = menu_mode__MenuStepperManager;
+                    // check if full command (with submenu command) is given:
+                    if ( command[7] != '\0' ) {
+                        // full length command
+                        // copy submenu command part to input buffer
+                        char* input = pInstance->get_command_input_pointer();
+                        strcpy(input, &command[7]);
+                        pInstance->set_flag_EOL(true);
+                    } else {
+                        // just change into the submenu and display help:
+                        pInstance->get_command_input_pointer()[0] = '?';
+                        pInstance->set_flag_EOL(true);
+                    }
+                }
             }
         } break;
         //---------------------------------------------------------------------
@@ -706,6 +879,9 @@ void menu_switcher(slight_DebugMenu *pInstance) {
         case menu_mode__MenuMotor: {
             menu_handle_Motor(pInstance);
         } break;
+        case menu_mode__MenuStepperManager: {
+            menu_handle_StepperManager(pInstance);
+        } break;
         default: {
             // something went wronge - so reset and show MainMenu
             menu_mode = menu_mode__MenuMain;
@@ -717,11 +893,15 @@ void menu_switcher(slight_DebugMenu *pInstance) {
 // motor info
 
 
-void print_systemevent() {
+void handle_systemevent() {
     Serial.print(F("system_state: "));
 
     StM_States::sysstate_t system_state =
         MoCon::myStepperManager.system_state_get();
+
+    // generate interrupt for TWI:
+    MoCon::myStM_TWI_Con.system_state_changed();
+    // MoCon::myStM_TWI_Con.system_state_changed(system_state);
 
     // led info:
     switch (system_state) {
@@ -874,7 +1054,7 @@ void setup() {
         //     display_motorenabled_update
         // );
         MoCon::myStepperManager.system_event_set_callback(
-            print_systemevent
+            handle_systemevent
         );
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

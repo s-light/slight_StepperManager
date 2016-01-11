@@ -297,7 +297,7 @@ void slight_StepperManager::motor_check_event() {
 }
 
 
-bool slight_StepperManager::motor_move_forward() {
+bool slight_StepperManager::move_forward() {
     bool motor_started = false;
     // check for system_state
     // only move if standby or moving.
@@ -317,7 +317,7 @@ bool slight_StepperManager::motor_move_forward() {
     return motor_started;
 }
 
-bool slight_StepperManager::motor_move_reverse() {
+bool slight_StepperManager::move_reverse() {
     bool motor_started = false;
     // check for system_state
     // only move if standby or moving.
@@ -374,7 +374,7 @@ bool slight_StepperManager::motor_move_reverse_raw() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // this is the public interface to start calibration
-void slight_StepperManager::calibration_start() {
+void slight_StepperManager::calibrate() {
     system_state = StM_States::STATE_calibrating_start;
 }
 
@@ -389,7 +389,7 @@ uint16_t slight_StepperManager::calibration_limit_threshold_get() {
 }
 
 // public emergency stop
-void slight_StepperManager::system_emergencystop() {
+void slight_StepperManager::emergencystop() {
     motor.stop();
     motor.disable();
     // something went wrong

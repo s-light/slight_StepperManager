@@ -35,6 +35,10 @@
 typedef slight_StepperManager_TWI StM_TWI;
 // using StM_TWI = slight_StepperManager_TWI;
 
+#include <slight_StepperManager_States.h>
+typedef slight_StepperManager_States StM_States;
+// using StM_States = slight_StepperManager_States;
+
 #include "slight_StepperManager.h"
 
 class slight_StepperManager_TWI_Controller {
@@ -44,8 +48,7 @@ class slight_StepperManager_TWI_Controller {
 
     slight_StepperManager_TWI_Controller(
         slight_StepperManager &myStManager_new,
-        const uint8_t TWI_address_own_new,
-        const uint8_t TWI_address_extern_new
+        const uint8_t TWI_address_own_new
     );
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,6 +61,7 @@ class slight_StepperManager_TWI_Controller {
     static void activate(slight_StepperManager_TWI_Controller *instance);
 
     void system_state_changed();
+    // void system_state_changed(StM_States::sysstate_t system_state);
 
     void handle_onRequest_ISR();
     void handle_onReceive_ISR(int rec_bytes);
@@ -77,7 +81,7 @@ class slight_StepperManager_TWI_Controller {
     volatile bool received_flag;
 
     const uint8_t TWI_address_own;
-    const uint8_t TWI_address_extern;
+    uint8_t TWI_address_eventTarget;
 
     static void TWI_request_event();
     static void TWI_receive_event(int rec_bytes);

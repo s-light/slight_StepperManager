@@ -85,6 +85,8 @@ namespace MotorControl {
         // A1,  // pinMS2
         // A2   // pinMS3  - NOT CONNECTED FOR SilentStepStick
     );
+    // if config pins are unconnected board defaults to
+    // 16uSteps    interpolated to 256 μsteps    stealthChop (quite run)
 
     // kissMicrostepConfig for Trinamic TMC2100
     // http://www.trinamic.com/products/integrated-circuits/stepper-power-driver/tmc2100
@@ -229,12 +231,10 @@ namespace MotorControl {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     const uint8_t TWI_address = 42;
-    const uint8_t TWI_address_master = 41;
 
     StM_TWI_Con myStM_TWI_Con(
         myStepperManager,
-        TWI_address,
-        TWI_address_master
+        TWI_address
     );
 
 
