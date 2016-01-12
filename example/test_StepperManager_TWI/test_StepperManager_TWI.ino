@@ -91,6 +91,7 @@ typedef slight_StepperManager_States StM_States;
 typedef slight_StepperManager_TWI StM_TWI;
 // using StM_TWI = slight_StepperManager_TWI;
 #include <Wire.h>
+#include <TWI_Anything.h>
 #include <slight_StepperManager_TWI_Controller.h>
 typedef slight_StepperManager_TWI_Controller StM_TWI_Con;
 // using StM_TWI_Con = slight_StepperManager_TWI_Controller;
@@ -569,7 +570,7 @@ void menu_handle_StepperManager(slight_DebugMenu *pInstance) {
         } break;
         //---------------------------------------------------------------------
         case 'x': {
-            out.println(F("exit Menu Motor."));
+            out.println(F("exit Menu StepperManager."));
             menu_mode = menu_mode__MenuMain;
         } break;
         //---------------------------------------------------------------------
@@ -733,21 +734,41 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             // get state
             out.println(F("__________"));
             out.println(F("Tests:"));
-
-            out.println(F("nothing to do."));
-
             // uint16_t wTest = 65535;
             uint16_t wTest = atoi(&command[1]);
+
             out.print(F("wTest: "));
             out.print(wTest);
             out.println();
 
-            out.print(F("1: "));
-            out.print((byte)wTest);
-            out.println();
+            // out.print(F("1: "));
+            // out.print((byte)wTest);
+            // out.println();
+            //
+            // out.print(F("2: "));
+            // out.print((byte)(wTest>>8));
+            // out.println();
 
-            out.print(F("2: "));
-            out.print((byte)(wTest>>8));
+            uint8_t buffer[30];
+
+            Buffer_writeAnything(wTest, buffer);
+
+            for (
+                size_t data_index = 0;
+                data_index < 2;
+                data_index++
+            ) {
+                // volatile uint8_t* data_pointer;
+                // data_pointer = received_data + data_index;
+                Serial.print(buffer[data_index], DEC);
+                Serial.print(" ");
+            }
+            Serial.println();
+
+            uint16_t test_result;
+            Buffer_readAnything(test_result, buffer);
+            out.print(F("test_result: "));
+            out.print(test_result);
             out.println();
 
             out.println();

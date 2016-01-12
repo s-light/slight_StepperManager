@@ -377,8 +377,12 @@ void StM_TWI_Master::write_register_16bit(uint8_t reg_name, uint16_t value) {
         // set register
         Wire.beginTransmission(TWI_address_target);
         Wire.write(reg_name);
-        TWI_writeAnything(value);
+        uint8_t write_size;
+        write_size = TWI_writeAnything(value);
         twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
+        Serial.print(F("write_size: "));
+        Serial.print(write_size);
+        Serial.println();
         if (twi_state == StM_TWI::TWI_STATE_success) {
             // all fine.
             if (debug_print) {

@@ -93,42 +93,11 @@ public:
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // system state
 
-    // enum StM_States::error_t {  // c
-    //     ERROR_none,
-    //     ERROR_timeout,
-    //     ERROR_limitswitch_wrong_dir,
-    //     ERROR_limitswitchs,
-    //     ERROR_motorstart,
-    //     ERROR_motorstop,
-    //     ERROR_calibrating,
-    //     ERROR_mechanics_moved,
-    //     ERROR_emergencystop,
-    // };
     // StM_States::error_t error_type; now private
     StM_States::error_t error_type_get();
     // static void error_type_print(Print&, StM_States::error_t);
     void error_type_print(Print&);
 
-    // enum class sysstate_t : uint8_t {      // c++ typesafe; arduino > 1.6.
-    // enum sysstate_t {  // c
-    //     STATE_notvalid,
-    //     STATE_standby,
-    //     STATE_hold_forward,
-    //     STATE_hold_reverse,
-    //     STATE_moving_forward,
-    //     STATE_moving_reverse,
-    //     STATE_dirty,
-    //     STATE_error,
-    //     STATE_calibrating_start =    30,
-    //     STATE_calibrating_check_next,
-    //     STATE_calibrating_forward_start,
-    //     STATE_calibrating_forward,
-    //     STATE_calibrating_forward_finished,
-    //     STATE_calibrating_reverse_start,
-    //     STATE_calibrating_reverse,
-    //     STATE_calibrating_reverse_finished,
-    //     STATE_calibrating_finished,
-    // };
     // sysstate_t system_state; now private
     StM_States::sysstate_t system_state_get();
     // static void system_state_print(Print&, StM_States::sysstate_t);

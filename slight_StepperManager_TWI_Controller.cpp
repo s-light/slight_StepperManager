@@ -214,7 +214,8 @@ void StM_TWI_Con::handle_onReceive_ISR(int rec_bytes) {
             received_data_size = rec_size -1;
             if (rec_size > 1) {
                 // copy data to instance data buffer
-                for (size_t index = 1; index < rec_size; index++) {
+                // rec_size-1 because received_register is allready read.
+                for (size_t index = 0; index < rec_size-1; index++) {
                     received_data[index] = Wire.read();
                 }
             }
@@ -264,14 +265,33 @@ void StM_TWI_Con::handle_received() {
                 //     "\tset reg p to new value (prepare for read or write)"
                 // ));
                 // register_current = received_register;
-
+                Serial.print(F("received_data_size "));
+                Serial.println(received_data_size);
+                Serial.print(F("received_data "));
+                Serial.println(*received_data);
+                Serial.print(F("received_data:"));
+                for (
+                    size_t data_index = 0;
+                    data_index < received_data_size;
+                    data_index++
+                ) {
+                    // volatile uint8_t* data_pointer;
+                    // data_pointer = received_data + data_index;
+                    Serial.print(received_data[data_index], DEC);
+                    Serial.print(" ");
+                }
+                Serial.println();
                 // check if write data is there
                 if (received_data_size > 0) {
                     // set register to new value.
                     // Serial.println(F(
                     //     "\thandle_register_new_data"
                     // ));
-                    handle_register_new_data(received_register, received_data);
+                    handle_register_new_data(
+                        received_register,
+                        received_data,
+                        received_data_size
+                    );
                 }
             } break;
         }  // switch register_name
@@ -310,7 +330,8 @@ void StM_TWI_Con::handle_action(StM_TWI::register_name_t action) {
 
 void StM_TWI_Con::handle_register_new_data(
     StM_TWI::register_name_t register_name,
-    volatile uint8_t *data
+    volatile uint8_t *data,
+    volatile uint8_t data_size
 ) {
     switch (register_name) {
         case StM_TWI::REG_setting_move_speed: {
@@ -321,6 +342,8 @@ void StM_TWI_Con::handle_register_new_data(
         case StM_TWI::REG_setting_move_acceleration: {
             uint16_t value = 0;
             Buffer_readAnything(value, data);
+            Serial.print(F("value "));
+            Serial.println(value);
             myStManager.move_acceleration_set(value);
         } break;
         case StM_TWI::REG_setting_calibration_speed: {

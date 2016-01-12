@@ -10,9 +10,24 @@
 
 // updated version - know works inside onRequest
 template <typename T> unsigned int TWI_writeAnything (const T& value) {
-  Wire.write((byte *) &value, sizeof (value));
-  return sizeof (value);
+    uint8_t write_size;
+    write_size = Wire.write((byte *) &value, sizeof (value));
+    return write_size;
 }  // end of I2C_writeAnything
+
+// definitve copatible with Buffer_readAnything:
+// template <typename T> unsigned int TWI_writeAnything(
+//     const T& value
+// ) {
+//     size_t size = sizeof value;
+//     uint8_t buffer[size];
+//     const byte* p = (const byte*) &value;
+//     size_t i;
+//     for (i = 0; i < sizeof value; i++) {
+//         buffer[i] = *p++;
+//     }
+//     return Wire.write(buffer, size);
+// }  // end of Buffer_writeAnything
 
 // original
 // template <typename T> unsigned int I2C_writeAnything (const T& value) {
@@ -37,13 +52,27 @@ template <typename T> unsigned int TWI_writeAnything (const T& value) {
 //     return i;
 // }  // end of I2C_singleWriteAnything
 
-template <typename T> unsigned int TWI_readAnything(T& value) {
+template <typename T> unsigned int TWI_readAnything(
+    T& value
+) {
     byte * p = (byte*) &value;
     size_t i;
     for (i = 0; i < sizeof value; i++)
           *p++ = Wire.read();
     return i;
 }  // end of I2C_readAnything
+
+template <typename T> unsigned int Buffer_writeAnything(
+    T& value,
+    uint8_t *buffer
+) {
+    const byte* p = (const byte*) &value;
+    size_t i;
+    for (i = 0; i < sizeof value; i++) {
+        buffer[i] = *p++;
+    }
+    return i;
+}  // end of Buffer_writeAnything
 
 template <typename T> unsigned int Buffer_readAnything(
     T& value,

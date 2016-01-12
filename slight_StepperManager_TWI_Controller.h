@@ -92,7 +92,8 @@ class slight_StepperManager_TWI_Controller {
     void handle_action(StM_TWI::register_name_t action);
     void handle_register_new_data(
         StM_TWI::register_name_t register_name,
-        volatile uint8_t *data
+        volatile uint8_t *data,
+        uint8_t data_size
     );
 
 };  // slight_StepperManager_TWI_Controller

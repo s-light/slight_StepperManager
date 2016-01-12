@@ -737,39 +737,6 @@ StM_States::error_t slight_StepperManager::error_type_get() {
     return error_type;
 }
 
-// void slight_StepperManager::error_type_print(Print &out, error_t error) {
-//     switch (error) {
-//         case StM_States::ERROR_none: {
-//             out.print(F("none"));
-//         } break;
-//         case StM_States::ERROR_timeout: {
-//             out.print(F("timeout"));
-//         } break;
-//         case StM_States::ERROR_limitswitch_wrong_dir: {
-//             // out.print(F("LimitSw wrong dir"));
-//             out.print(F("LimitSwDirection"));
-//         } break;
-//         case StM_States::ERROR_limitswitchs: {
-//             out.print(F("LimitSw blocked"));
-//         } break;
-//         case StM_States::ERROR_motorstart: {
-//             out.print(F("motor start"));
-//         } break;
-//         case StM_States::ERROR_motorstop: {
-//             out.print(F("motor stop"));
-//         } break;
-//         case StM_States::ERROR_calibrating: {
-//             out.print(F("calibrating"));
-//         } break;
-//         case StM_States::ERROR_mechanics_moved: {
-//             out.print(F("mechanics moved"));
-//         } break;
-//         case StM_States::ERROR_emergencystop: {
-//             out.print(F("emergency stop"));
-//         } break;
-//     }
-// }
-
 void slight_StepperManager::error_type_print(Print &out) {
     StM_States::error_type_print(out, error_type);
 }
@@ -777,62 +744,6 @@ void slight_StepperManager::error_type_print(Print &out) {
 StM_States::sysstate_t slight_StepperManager::system_state_get() {
     return system_state;
 }
-
-// void slight_StepperManager::system_state_print(Print &out, StM_States::sysstate_t state) {
-//     switch (state) {
-//         case StM_States::STATE_notvalid: {
-//             out.print(F("notvalid"));
-//         } break;
-//         case StM_States::STATE_standby: {
-//             out.print(F("standby"));
-//         } break;
-//         case StM_States::STATE_hold_forward: {
-//             out.print(F("hold forward"));
-//         } break;
-//         case StM_States::STATE_hold_reverse: {
-//             out.print(F("hold reverse"));
-//         } break;
-//         case StM_States::STATE_moving_forward: {
-//             out.print(F("moving forward"));
-//         } break;
-//         case StM_States::STATE_moving_reverse: {
-//             out.print(F("moving reverse"));
-//         } break;
-//         case StM_States::STATE_dirty: {
-//             out.print(F("dirty"));
-//         } break;
-//         case StM_States::STATE_error: {
-//             out.print(F("error"));
-//         } break;
-//         case StM_States::STATE_calibrating_check_next: {
-//             out.print(F("cali check next"));
-//         } break;
-//         case StM_States::STATE_calibrating_start: {
-//             out.print(F("cali start"));
-//         } break;
-//         case StM_States::STATE_calibrating_forward_start: {
-//             out.print(F("cali forward start"));
-//         } break;
-//         case StM_States::STATE_calibrating_forward: {
-//             out.print(F("cali forward"));
-//         } break;
-//         case StM_States::STATE_calibrating_forward_finished: {
-//             out.print(F("cali forward finished"));
-//         } break;
-//         case StM_States::STATE_calibrating_reverse_start: {
-//             out.print(F("cali reverse start"));
-//         } break;
-//         case StM_States::STATE_calibrating_reverse: {
-//             out.print(F("cali reverse"));
-//         } break;
-//         case StM_States::STATE_calibrating_reverse_finished: {
-//             out.print(F("cali reverse finished"));
-//         } break;
-//         case StM_States::STATE_calibrating_finished: {
-//             out.print(F("cali finished"));
-//         } break;
-//     }
-// }
 
 void slight_StepperManager::system_state_print(Print &out) {
     StM_States::system_state_print(out, system_state);
@@ -846,7 +757,7 @@ void slight_StepperManager::move_speed_set(
     uint16_t stepsPerSec
 ) {
     move_speed = stepsPerSec;
-    // motor.setMaxSpeed(move_speed);
+    motor.setMaxSpeed(move_speed);
 }
 
 uint16_t slight_StepperManager::move_speed_get() {
@@ -857,7 +768,7 @@ void slight_StepperManager::move_acceleration_set(
     uint16_t stepsPerSecPerSec
 ) {
     move_acceleration = stepsPerSecPerSec;
-    // motor.setAccel(move_acceleration);
+    motor.setAccel(move_acceleration);
 }
 
 uint16_t slight_StepperManager::move_acceleration_get() {
@@ -870,6 +781,7 @@ void slight_StepperManager::calibration_speed_set(
 ) {
     calibration_speed = stepsPerSec;
     // motor.setMaxSpeed(calibration_speed);
+    // will be set on calibration start.
 }
 
 uint16_t slight_StepperManager::calibration_speed_get() {
@@ -881,6 +793,7 @@ void slight_StepperManager::calibration_acceleration_set(
 ) {
     calibration_acceleration = stepsPerSecPerSec;
     // motor.setAccel(calibration_acceleration);
+    // will be set on calibration start.
 }
 
 uint16_t slight_StepperManager::calibration_acceleration_get() {
