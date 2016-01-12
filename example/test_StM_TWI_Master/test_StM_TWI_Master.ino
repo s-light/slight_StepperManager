@@ -453,6 +453,11 @@ void print_systemevent(slight_StepperManager_TWI_Master *instance) {
     instance->system_state_print(Serial);
     Serial.println();
     switch (instance->system_state_get()) {
+
+        case StM_States::STATE_calibrating_finished: {
+            // move arm to reverse position:
+            instance->move_reverse();
+        } break;
         case StM_States::STATE_error: {
             // print error
             Serial.print(F("error: "));
