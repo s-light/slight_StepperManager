@@ -566,6 +566,9 @@ void menu_handle_StepperManager(slight_DebugMenu *pInstance) {
             out.println(F("\t 'e': calibration speed set 's500'"));
             out.println(F("\t 'E': calibration speed get"));
             out.println();
+            out.println(F("\t 't': twi event target address write 't41'"));
+            out.println(F("\t 'T': twi event target address read"));
+            out.println();
             out.println(F("____________________________________________________________"));
         } break;
         //---------------------------------------------------------------------
@@ -603,61 +606,78 @@ void menu_handle_StepperManager(slight_DebugMenu *pInstance) {
         //---------------------------------------------------------------------
         case 'a': {
             out.print(F("\t move acceleration set "));
-            uint16_t acceleration = atoi(&command[1]);
-            out.print(acceleration);
-            MoCon::myStepperManager.move_acceleration_set(acceleration);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
+            MoCon::myStepperManager.move_acceleration_set(value);
             out.println();
         } break;
         case 'A': {
             out.print(F("\t move acceleration:"));
-            uint16_t acceleration;
-            acceleration = MoCon::myStepperManager.move_acceleration_get();
-            out.print(acceleration);
+            uint16_t value;
+            value = MoCon::myStepperManager.move_acceleration_get();
+            out.print(value);
             out.println();
         } break;
         case 'q': {
             out.print(F("\t move speed set "));
-            uint16_t speed = atoi(&command[1]);
-            out.print(speed);
-            MoCon::myStepperManager.move_speed_set(speed);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
+            MoCon::myStepperManager.move_speed_set(value);
             out.println();
         } break;
         case 'Q': {
             out.print(F("\t move speed:"));
-            uint16_t speed;
-            speed = MoCon::myStepperManager.move_speed_get();
-            out.print(speed);
+            uint16_t value;
+            value = MoCon::myStepperManager.move_speed_get();
+            out.print(value);
             out.println();
         } break;
         case 'w': {
             out.print(F("\t calibration acceleration set "));
-            uint16_t acceleration = atoi(&command[1]);
-            out.print(acceleration);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
             MoCon::myStepperManager.calibration_acceleration_set(
-                acceleration
+                value
             );
             out.println();
         } break;
         case 'W': {
             out.print(F("\t calibration acceleration:"));
-            uint16_t acceleration;
-            acceleration =
+            uint16_t value;
+            value =
                 MoCon::myStepperManager.calibration_acceleration_get();
-            out.print(acceleration);
+            out.print(value);
             out.println();
         } break;
         case 'e': {
             out.print(F("\t calibration speed set "));
-            uint16_t speed = atoi(&command[1]);
-            out.print(speed);
-            MoCon::myStepperManager.calibration_speed_set(speed);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
+            MoCon::myStepperManager.calibration_speed_set(value);
             out.println();
         } break;
         case 'E': {
             out.print(F("\t calibration speed:"));
-            uint16_t speed;
-            speed = MoCon::myStepperManager.calibration_speed_get();
-            out.print(speed);
+            uint16_t value;
+            value = MoCon::myStepperManager.calibration_speed_get();
+            out.print(value);
+            out.println();
+        } break;
+        case 't': {
+            out.print(F("\t twi event target address write "));
+            uint8_t value = atoi(&command[1]);
+            out.print(value);
+            MoCon::myStM_TWI_Con.settings_twi_event_target_address_write(
+                value
+            );
+            out.println();
+        } break;
+        case 'T': {
+            out.print(F("\t twi event target address :"));
+            uint8_t value;
+            value = MoCon::myStM_TWI_Con.
+                settings_twi_event_target_address_read();
+            out.print(value);
             out.println();
         } break;
         //---------------------------------------------------------------------

@@ -73,9 +73,14 @@ public:
         REG_setting_move_acceleration,  // R/W 2Byte
         REG_setting_calibration_speed,  // R/W 2Byte
         REG_setting_calibration_acceleration,  // R/W 2Byte
+        REG_setting_twi_event_target_address,  // R/W 1Byte
     };
     static void register_name_print(Print &out, register_name_t register_name);
 
+    static const uint8_t TWI_ADDRESS_BROADCAST = 0;
+    static const uint8_t TWI_ADDRESS_INVALID = 255;
+
+    static bool twi_address_valid(uint8_t address);
 };  // slight_StepperManager_TWI
 
 #endif  // SLIGHT_STEPPERMANAGER_TWI_H_

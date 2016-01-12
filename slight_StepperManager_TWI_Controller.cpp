@@ -66,6 +66,7 @@ StM_TWI_Con::slight_StepperManager_TWI_Controller(
     // set some initial states:
     register_current = StM_TWI::REG_general_state;
     // set explicit to null
+    TWI_address_eventtarget = StM_TWI::TWI_ADDRESS_INVALID;
 }
 
 // init pointer to null
@@ -117,6 +118,34 @@ void StM_TWI_Con::activate(slight_StepperManager_TWI_Controller *controller) {
 void StM_TWI_Con::system_state_changed() {
     // handle event
     // StM_States::sysstate_t system_state
+    // Serial.println();
+    // Serial.println(F("system_state_changed:"));
+    // Serial.print(F("\t TWI_address_eventtarget: "));
+    // Serial.println(TWI_address_eventtarget);
+    // check if valid address is set:
+    // http://www.gammon.com.au/forum/?id=10896
+    if (StM_TWI::twi_address_valid(TWI_address_eventtarget)) {
+        // Serial.println(F("\t send twi event.."));
+        StM_TWI::twi_state_t twi_state = StM_TWI::TWI_STATE_undefined;
+        // send event
+        Wire.beginTransmission(TWI_address_eventtarget);
+            Wire.write(register_general_state);
+            Wire.write(myStManager.system_state_get());
+            Wire.write(myStManager.error_type_get());
+        twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
+        if (twi_state == StM_TWI::TWI_STATE_success) {
+            // all fine.
+            // if (debug_print) {
+                // StM_TWI::twi_state_print(Serial, twi_state);
+            // }
+        } else {
+            // if (debug_print) {
+                StM_TWI::twi_state_print(Serial, twi_state);
+            // }
+        }
+    }
+
+    // Serial.println();
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -184,6 +213,11 @@ void StM_TWI_Con::handle_request() {
         case StM_TWI::REG_setting_calibration_acceleration: {
             TWI_writeAnything(
                 myStManager.calibration_acceleration_get()
+            );
+        } break;
+        case StM_TWI::REG_setting_twi_event_target_address: {
+            TWI_writeAnything(
+                TWI_address_eventtarget
             );
         } break;
     }  // switch register_name
@@ -258,29 +292,31 @@ void StM_TWI_Con::handle_received() {
             case StM_TWI::REG_setting_move_speed:
             case StM_TWI::REG_setting_move_acceleration:
             case StM_TWI::REG_setting_calibration_speed:
-            case StM_TWI::REG_setting_calibration_acceleration: {
+            case StM_TWI::REG_setting_calibration_acceleration:
+            case StM_TWI::REG_setting_twi_event_target_address: {
                 // just set register pointer to new value
                 // (prepare for read or write)
                 // Serial.println(F(
                 //     "\tset reg p to new value (prepare for read or write)"
                 // ));
                 // register_current = received_register;
-                Serial.print(F("received_data_size "));
-                Serial.println(received_data_size);
-                Serial.print(F("received_data "));
-                Serial.println(*received_data);
-                Serial.print(F("received_data:"));
-                for (
-                    size_t data_index = 0;
-                    data_index < received_data_size;
-                    data_index++
-                ) {
-                    // volatile uint8_t* data_pointer;
-                    // data_pointer = received_data + data_index;
-                    Serial.print(received_data[data_index], DEC);
-                    Serial.print(" ");
-                }
-                Serial.println();
+                // Serial.print(F("received_data_size "));
+                // Serial.println(received_data_size);
+                // Serial.print(F("received_data "));
+                // Serial.println(*received_data);
+                // Serial.print(F("received_data:"));
+                // for (
+                //     size_t data_index = 0;
+                //     data_index < received_data_size;
+                //     data_index++
+                // ) {
+                //     // volatile uint8_t* data_pointer;
+                //     // data_pointer = received_data + data_index;
+                //     Serial.print(received_data[data_index], DEC);
+                //     Serial.print(" ");
+                // }
+                // Serial.println();
+
                 // check if write data is there
                 if (received_data_size > 0) {
                     // set register to new value.
@@ -356,6 +392,11 @@ void StM_TWI_Con::handle_register_new_data(
             Buffer_readAnything(value, data);
             myStManager.calibration_acceleration_set(value);
         } break;
+        case StM_TWI::REG_setting_twi_event_target_address: {
+            uint16_t value = 0;
+            Buffer_readAnything(value, data);
+            TWI_address_eventtarget = value;
+        } break;
         default: {
             // should never be the case ;-)
             // just is here to prevent compiler warnings about unhandled cases
@@ -363,5 +404,19 @@ void StM_TWI_Con::handle_register_new_data(
     }  // switch register_name
 }
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// TWI handling
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void StM_TWI_Con::settings_twi_event_target_address_write(uint8_t TWI_address) {
+    if (StM_TWI::twi_address_valid(TWI_address)) {
+        TWI_address_eventtarget = TWI_address;
+        // send current states
+        system_state_changed();
+    }
+}
+
+uint8_t StM_TWI_Con::settings_twi_event_target_address_read() {
+    return TWI_address_eventtarget;
+}
 
 // end slight_StepperManager_TWI_Controller

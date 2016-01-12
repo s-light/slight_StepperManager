@@ -233,6 +233,9 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
             out.println(F("\t 'e': calibration speed write 's500'"));
             out.println(F("\t 'E': calibration speed read"));
             out.println();
+            out.println(F("\t 't': twi event target address write 't41'"));
+            out.println(F("\t 'T': twi event target address read"));
+            out.println();
             out.println(F("____________________________________________________________"));
         } break;
         case 'i': {
@@ -305,61 +308,74 @@ void menu_handle_Main(slight_DebugMenu *pInstance) {
         //---------------------------------------------------------------------
         case 'a': {
             out.print(F("\t move acceleration write "));
-            uint16_t acceleration = atoi(&command[1]);
-            out.print(acceleration);
-            myStM_TWI_Master.settings_move_acceleration_write(acceleration);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
+            myStM_TWI_Master.settings_move_acceleration_write(value);
             out.println();
         } break;
         case 'A': {
             out.print(F("\t move acceleration:"));
-            uint16_t acceleration;
-            acceleration = myStM_TWI_Master.settings_move_acceleration_read();
-            out.print(acceleration);
+            uint16_t value;
+            value = myStM_TWI_Master.settings_move_acceleration_read();
+            out.print(value);
             out.println();
         } break;
         case 'q': {
             out.print(F("\t move speed write "));
-            uint16_t speed = atoi(&command[1]);
-            out.print(speed);
-            myStM_TWI_Master.settings_move_speed_write(speed);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
+            myStM_TWI_Master.settings_move_speed_write(value);
             out.println();
         } break;
         case 'Q': {
             out.print(F("\t move speed:"));
-            uint16_t speed;
-            speed = myStM_TWI_Master.settings_move_speed_read();
-            out.print(speed);
+            uint16_t value;
+            value = myStM_TWI_Master.settings_move_speed_read();
+            out.print(value);
             out.println();
         } break;
         case 'w': {
             out.print(F("\t calibration acceleration write "));
-            uint16_t acceleration = atoi(&command[1]);
-            out.print(acceleration);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
             myStM_TWI_Master.settings_calibration_acceleration_write(
-                acceleration
+                value
             );
             out.println();
         } break;
         case 'W': {
             out.print(F("\t calibration acceleration:"));
-            uint16_t acceleration;
-            acceleration =
-                myStM_TWI_Master.settings_calibration_acceleration_read();
-            out.print(acceleration);
+            uint16_t value;
+            value = myStM_TWI_Master.settings_calibration_acceleration_read();
+            out.print(value);
             out.println();
         } break;
         case 'e': {
             out.print(F("\t calibration speed write "));
-            uint16_t speed = atoi(&command[1]);
-            out.print(speed);
-            myStM_TWI_Master.settings_calibration_speed_write(speed);
+            uint16_t value = atoi(&command[1]);
+            out.print(value);
+            myStM_TWI_Master.settings_calibration_speed_write(value);
             out.println();
         } break;
         case 'E': {
             out.print(F("\t calibration speed:"));
-            uint16_t speed;
-            speed = myStM_TWI_Master.settings_calibration_speed_read();
-            out.print(speed);
+            uint16_t value;
+            value = myStM_TWI_Master.settings_calibration_speed_read();
+            out.print(value);
+            out.println();
+        } break;
+        case 't': {
+            out.print(F("\t twi event target address write "));
+            uint8_t value = atoi(&command[1]);
+            out.print(value);
+            myStM_TWI_Master.settings_twi_event_target_address_write(value);
+            out.println();
+        } break;
+        case 'T': {
+            out.print(F("\t twi event target address :"));
+            uint8_t value;
+            value = myStM_TWI_Master.settings_twi_event_target_address_read();
+            out.print(value);
             out.println();
         } break;
         //---------------------------------------------------------------------
@@ -404,20 +420,27 @@ void init_things(Print &out) {
     Wire.begin(TWI_address_own);
 
     out.println(F("\t setup onReceive event handling."));
-    Wire.onReceive(wire_onReceive);
+    Wire.onReceive(wire_onReceive_ISR);
     out.println(F("\t finished."));
 
 
     out.println(F("setup TWI StepperManager:"));
     myStM_TWI_Master.begin(out);
+    out.println(F("\t set twi event target address at slave to own"));
+    // set twi event target to own address:
+    // so we get all state information if they are changeing at the slave
+    // if you want to disable the TWI event set the address to
+    // TWI_NO_ADDRESS
+    myStM_TWI_Master.settings_twi_event_target_address_write(TWI_address_own);
     out.println(F("\t set event callback"));
     myStM_TWI_Master.event_callback_set(
         print_systemevent
     );
+
     out.println(F("\t finished."));
 }
 
-void wire_onReceive(int rec_bytes) {
+void wire_onReceive_ISR(int rec_bytes) {
     myStM_TWI_Master.handle_onReceive_ISR(rec_bytes);
 }
 

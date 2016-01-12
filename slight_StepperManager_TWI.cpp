@@ -85,6 +85,9 @@ void StM_TWI::register_name_print(Print &out, register_name_t register_name) {
         case REG_error_type: {
             out.print(F("error type"));
         } break;
+        case REG_action_calibrate: {
+            out.print(F("action calibrate"));
+        } break;
         case REG_action_move_forward: {
             out.print(F("action move forward"));
         } break;
@@ -106,7 +109,27 @@ void StM_TWI::register_name_print(Print &out, register_name_t register_name) {
         case REG_setting_calibration_acceleration: {
             out.print(F("setting calibration acceleration"));
         } break;
+        case REG_setting_twi_event_target_address: {
+            out.print(F("setting twi event target address"));
+        } break;
     }
 }
 
-// end slight_StepperManager_TWI_States
+
+bool StM_TWI::twi_address_valid(uint8_t address) {
+    bool result = false;
+    if (
+        (address == TWI_ADDRESS_BROADCAST) ||
+        (
+            (7 < address) &&
+            (address < 120)
+        )
+    ) {
+        result = true;
+    } else {
+        result = false;
+    }
+    return result;
+}
+
+// end slight_StepperManager_TWI

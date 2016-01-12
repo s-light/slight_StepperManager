@@ -97,6 +97,9 @@ class slight_StepperManager_TWI_Master {
     uint16_t settings_calibration_acceleration_read();
     void settings_calibration_acceleration_write(uint16_t value);
 
+    void settings_twi_event_target_address_write(uint8_t TWI_address_target);
+    uint8_t settings_twi_event_target_address_read();
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // basic read write operations
     void write_register(StM_TWI::register_name_t reg_name);

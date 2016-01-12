@@ -121,6 +121,10 @@ void StM_TWI_Master::fire_event_callback() {
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// states
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 uint8_t StM_TWI_Master::general_state_get() {
     return general_state;
 }
@@ -132,6 +136,7 @@ StM_States::sysstate_t StM_TWI_Master::system_state_get() {
 StM_States::error_t StM_TWI_Master::error_type_get() {
     return error_type;
 }
+
 
 void StM_TWI_Master::system_state_print(Print &out) {
     StM_States::system_state_print(out, system_state);
@@ -147,7 +152,7 @@ void StM_TWI_Master::error_type_print(Print &out) {
 // TWI handling
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Slave has send some information.
+// Someoen has send some information.
 // so we react on this.
 // ISR!!!!
 void StM_TWI_Master::TWI_receive_event(int rec_bytes) {
@@ -157,7 +162,7 @@ void StM_TWI_Master::TWI_receive_event(int rec_bytes) {
 }
 
 void StM_TWI_Master::handle_onReceive_ISR(int rec_bytes) {
-    if (active_instance != NULL) {
+    if (ready) {
         uint8_t rec_size = rec_bytes;
         if (rec_bytes > 0) {
             // read general_state
@@ -259,6 +264,7 @@ void StM_TWI_Master::settings_move_acceleration_write(uint16_t value) {
     );
 }
 
+
 uint16_t StM_TWI_Master::settings_calibration_speed_read() {
     return read_register_16bit(StM_TWI::REG_setting_calibration_speed);
 }
@@ -280,6 +286,19 @@ void StM_TWI_Master::settings_calibration_acceleration_write(uint16_t value) {
         value
     );
 }
+
+
+uint8_t StM_TWI_Master::settings_twi_event_target_address_read() {
+    return read_register_8bit(StM_TWI::REG_setting_twi_event_target_address);
+}
+
+void StM_TWI_Master::settings_twi_event_target_address_write(uint8_t TWI_address_target) {
+    write_register_8bit(
+        StM_TWI::REG_setting_twi_event_target_address,
+        TWI_address_target
+    );
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // basic read write operations
@@ -380,9 +399,9 @@ void StM_TWI_Master::write_register_16bit(uint8_t reg_name, uint16_t value) {
         uint8_t write_size;
         write_size = TWI_writeAnything(value);
         twi_state = (StM_TWI::twi_state_t)Wire.endTransmission();
-        Serial.print(F("write_size: "));
-        Serial.print(write_size);
-        Serial.println();
+        // Serial.print(F("write_size: "));
+        // Serial.print(write_size);
+        // Serial.println();
         if (twi_state == StM_TWI::TWI_STATE_success) {
             // all fine.
             if (debug_print) {

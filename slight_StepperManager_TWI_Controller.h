@@ -66,6 +66,9 @@ class slight_StepperManager_TWI_Controller {
     void handle_onRequest_ISR();
     void handle_onReceive_ISR(int rec_bytes);
 
+    void settings_twi_event_target_address_write(uint8_t TWI_address);
+    uint8_t settings_twi_event_target_address_read();
+
  protected:
     static slight_StepperManager_TWI_Controller * active_instance;
 
@@ -81,7 +84,7 @@ class slight_StepperManager_TWI_Controller {
     volatile bool received_flag;
 
     const uint8_t TWI_address_own;
-    uint8_t TWI_address_eventTarget;
+    uint8_t TWI_address_eventtarget;
 
     static void TWI_request_event();
     static void TWI_receive_event(int rec_bytes);
@@ -93,7 +96,7 @@ class slight_StepperManager_TWI_Controller {
     void handle_register_new_data(
         StM_TWI::register_name_t register_name,
         volatile uint8_t *data,
-        uint8_t data_size
+        volatile uint8_t data_size
     );
 
 };  // slight_StepperManager_TWI_Controller
