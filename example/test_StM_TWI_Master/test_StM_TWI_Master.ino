@@ -426,16 +426,16 @@ void init_things(Print &out) {
 
     out.println(F("setup TWI StepperManager:"));
     myStM_TWI_Master.begin(out);
+    out.println(F("\t set event callback"));
+    myStM_TWI_Master.event_callback_set(
+        print_systemevent
+    );
     out.println(F("\t set twi event target address at slave to own"));
     // set twi event target to own address:
     // so we get all state information if they are changeing at the slave
     // if you want to disable the TWI event set the address to
     // TWI_NO_ADDRESS
     myStM_TWI_Master.settings_twi_event_target_address_write(TWI_address_own);
-    out.println(F("\t set event callback"));
-    myStM_TWI_Master.event_callback_set(
-        print_systemevent
-    );
 
     out.println(F("\t finished."));
 }
@@ -453,7 +453,6 @@ void print_systemevent(slight_StepperManager_TWI_Master *instance) {
     instance->system_state_print(Serial);
     Serial.println();
     switch (instance->system_state_get()) {
-
         case StM_States::STATE_calibrating_finished: {
             // move arm to reverse position:
             instance->move_reverse();

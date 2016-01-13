@@ -396,6 +396,9 @@ void StM_TWI_Con::handle_register_new_data(
             uint16_t value = 0;
             Buffer_readAnything(value, data);
             TWI_address_eventtarget = value;
+            // println(F("new eventtarget. send current states."));
+            // send current states
+            system_state_changed();
         } break;
         default: {
             // should never be the case ;-)
@@ -410,6 +413,7 @@ void StM_TWI_Con::handle_register_new_data(
 void StM_TWI_Con::settings_twi_event_target_address_write(uint8_t TWI_address) {
     if (StM_TWI::twi_address_valid(TWI_address)) {
         TWI_address_eventtarget = TWI_address;
+        // println(F("new eventtarget. send current states."));
         // send current states
         system_state_changed();
     }
