@@ -89,6 +89,8 @@ public:
 
     // emergency stop
     void emergencystop();
+    void emergencystop_motor_disable_set(bool);
+    bool emergencystop_motor_disable_get();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // system state
@@ -151,6 +153,8 @@ protected:
 
     bool calibration_direction_forward_done;
     bool calibration_direction_reverse_done;
+
+    bool emergencystop_motor_disable;
 
     uint32_t motor_move_started_timestamp;
 

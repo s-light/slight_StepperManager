@@ -80,6 +80,10 @@ slight_StepperManager::slight_StepperManager(
     motor_accel_state = 0;
     motor_move_state = 0;
     motor_isenabled = 0;
+
+    // defaults to only stops motor.
+    // if set to true then motor will be released on emergencystop
+    emergencystop_motor_disable = false;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -391,7 +395,9 @@ uint16_t slight_StepperManager::calibration_limit_threshold_get() {
 // public emergency stop
 void slight_StepperManager::emergencystop() {
     motor.stop();
-    // motor.disable();
+    if (emergencystop_motor_disable) {
+      motor.disable();
+    }
     // something went wrong
     error_type = StM_States::ERROR_emergencystop;
     system_error();
@@ -726,7 +732,9 @@ void slight_StepperManager::system_check_motor_timeout() {
 }
 
 void slight_StepperManager::system_error() {
-    // motor.disable();
+    if (emergencystop_motor_disable) {
+        motor.disable();
+    }
     system_state = StM_States::STATE_error;
 }
 
@@ -799,6 +807,20 @@ void slight_StepperManager::calibration_acceleration_set(
 uint16_t slight_StepperManager::calibration_acceleration_get() {
     return calibration_acceleration;
 }
+
+
+void slight_StepperManager::emergencystop_motor_disable_set(
+    bool disable
+) {
+    /*if set false motor will only stop. if set to true motor will freerun.*/
+    emergencystop_motor_disable = disable;
+}
+
+bool slight_StepperManager::emergencystop_motor_disable_get() {
+    return emergencystop_motor_disable;
+}
+
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // public event setters

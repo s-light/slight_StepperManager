@@ -284,6 +284,10 @@ namespace MotorControl {
         myStepperManager.init(out);
         myStepperManager.motor.setDriveMode(MICROSTEP_16);
         myStepperManager.motor.useStandby(true);
+        // emergencystop_motor_disable:
+        //    false = motor only stops.
+        //    true = motor freerun
+        myStepperManager.emergencystop_motor_disable_set(false);
 
         myStM_TWI_Con.begin(out);
         out.println(F("\t activate myStM_TWI_Con instance for TWI events."));
