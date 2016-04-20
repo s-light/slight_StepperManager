@@ -391,7 +391,7 @@ uint16_t slight_StepperManager::calibration_limit_threshold_get() {
 // public emergency stop
 void slight_StepperManager::emergencystop() {
     motor.stop();
-    motor.disable();
+    // motor.disable();
     // something went wrong
     error_type = StM_States::ERROR_emergencystop;
     system_error();
@@ -726,7 +726,7 @@ void slight_StepperManager::system_check_motor_timeout() {
 }
 
 void slight_StepperManager::system_error() {
-    motor.disable();
+    // motor.disable();
     system_state = StM_States::STATE_error;
 }
 
